@@ -111,13 +111,13 @@
         <input
           type="text"
           v-model="userGuess"
-          class="text-black p-2 rounded mr-2"
+          class="text-black p-2 rounded mr-2 transition hover:scale-105"
           placeholder="¿Quién crees que es?"
           @keyup.enter="onGuess"
         />
         <button
           @click="onGuess"
-          class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 mr-2"
+          class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 mr-2 transition hover:scale-105"
         >
           Adivinar
         </button>
