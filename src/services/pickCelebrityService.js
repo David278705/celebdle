@@ -9,7 +9,7 @@ import { db } from "@/firebase/firebase";
  * Obtiene todas las celebridades de la colección "celebrities"
  * en Firestore y devuelve 1 celebridad elegida aleatoriamente.
  *
- * @returns {Object} Un objeto con { id, name, imageUrl, audioUrl, ... }
+ * @returns {Object} Un objeto con { id, name, imageUrl, audioUrl, .... }
  */
 export async function pickCelebrityOfTheDay() {
   // 1. Traer todos los documentos de la colección "celebrities"
