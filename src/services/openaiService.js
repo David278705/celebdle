@@ -29,7 +29,7 @@ export async function getClues(celebrityName) {
       Genera 4 pistas cortas y creativas sobre la celebridad llamada "${celebrityName}",
       sin revelar su nombre. 
       Deben estar ordenadas de la más difícil (pista 1) a la más fácil (pista 4).
-      Cada pista debe ser solo una oración.
+      Cada pista debe ser solo una oración. Todas las pistas deben ser dificiles casi imposibles de adivinar.
       `,
     },
   ];
