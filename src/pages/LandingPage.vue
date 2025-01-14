@@ -25,6 +25,7 @@
 
     <div>
       <button
+        @click="goToGame"
         class="font-montserrat transition bg-amber-300 px-6 py-3 text-black rounded-lg hover:bg-amber-300 hover:scale-110"
       >
         ¡Comienza a jugar!
@@ -41,17 +42,21 @@
         />
       </a>
     </p>
-    <img
-      src="/img/celeb-dle-no-text-black.png"
-      class="w-12"
-      alt=" Celebdle Logo"
-    />
   </div>
 </template>
 
 <script>
+import { useRouter } from "vue-router";
+
 export default {
   name: "LandingPage",
+  setup() {
+    const router = useRouter();
+    const goToGame = () => {
+      router.push("/play");
+    };
+    return { goToGame };
+  },
 };
 </script>
 

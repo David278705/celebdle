@@ -1,14 +1,16 @@
-// src/router/index.js
 import { createRouter, createWebHistory } from "vue-router";
-import LandingPage from "../pages/LandingPage.vue";
+import LandingPage from "@/pages/LandingPage.vue";
+import GameView from "@/pages/GameView.vue";
 
 const routes = [
   {
     path: "/",
-    name: "LandingPage",
     component: LandingPage,
   },
-  // Otras rutas (por ejemplo /game, /results, etc.)
+  {
+    path: "/play",
+    component: GameView,
+  },
 ];
 
 const router = createRouter({

@@ -3,8 +3,6 @@
 @tailwind components;
 @tailwind utilities;
 
-@import url("https://fonts.googleapis.com/css2?family=Montserrat:wght@500;700&display=swap");
-
 :root {
   font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
@@ -18,6 +16,17 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+input,
+select,
+textarea {
+  color: #ffffff !important;
+}
+
+textarea:focus,
+input:focus {
+  color: #ffffff !important;
 }
 
 a {
