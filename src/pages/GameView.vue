@@ -222,7 +222,9 @@ import { ref, computed, onMounted } from "vue";
 import { getOrCreateDailyGame, updateDailyGame } from "@/services/gameService";
 import i18n from "@/lang.js"; // <-- importamos el objeto de traducciones
 
-const todayStr = new Date().toISOString().slice(0, 10);
+const today = new Date();
+const offsetDate = new Date(today.getTime());
+const todayStr = offsetDate.toISOString().slice(0, 10);
 
 export default {
   name: "GameView",

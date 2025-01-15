@@ -11,16 +11,14 @@ const routes = [
     path: "/",
     component: LandingPage,
     props: (route) => ({
-      lang:
-        route.query.lang || (navigator.language.includes("es") ? "es" : "en"),
+      lang: route.query.lang,
     }),
   },
   {
     path: "/play",
     component: GameView,
     props: (route) => ({
-      lang:
-        route.query.lang || (navigator.language.includes("es") ? "es" : "en"),
+      lang: route.query.lang,
     }),
   },
   {
