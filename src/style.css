@@ -78,6 +78,9 @@ button:focus-visible {
   max-width: 1280px;
   margin: 0 auto;
   padding: 2rem;
+  @media (max-width: 640px) {
+    padding: 0.5rem;
+  }
   text-align: center;
 }
 
@@ -92,4 +95,23 @@ button:focus-visible {
   button {
     background-color: #f9f9f9;
   }
+}
+
+/* Scrollbar minimalista */
+::-webkit-scrollbar {
+  width: 8px; /* Ancho del scrollbar */
+  height: 8px; /* Altura del scrollbar horizontal (opcional) */
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: #555; /* Color gris oscuro */
+  border-radius: 4px; /* Bordes redondeados */
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: #666; /* Color un poco más claro al pasar el mouse */
+}
+
+::-webkit-scrollbar-track {
+  background-color: transparent; /* Fondo transparente */
 }

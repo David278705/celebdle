@@ -19,7 +19,7 @@ const userGamesCol = collection(db, "userGames");
  *    - userId: string
  *    - dateStr: "YYYY-MM-DD"
  */
-export async function getOrCreateDailyGame(userId, dateStr) {
+export async function getOrCreateDailyGame(userId, dateStr, lang) {
   const docRef = doc(userGamesCol, `${userId}_${dateStr}`);
   const docSnap = await getDoc(docRef);
 
@@ -31,7 +31,7 @@ export async function getOrCreateDailyGame(userId, dateStr) {
     // 1) Obtenemos la celebrity del día (o la elegimos si no existe)
     const chosenCeleb = await pickCelebrityOfTheDay();
     // 2) Generamos las 4 pistas textuales (solo una vez)
-    const clues = await getClues(chosenCeleb.name);
+    const clues = await getClues(chosenCeleb.name, lang);
 
     // Armamos la estructura del nuevo doc
     const newGameState = {

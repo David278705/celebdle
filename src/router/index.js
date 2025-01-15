@@ -10,10 +10,18 @@ const routes = [
   {
     path: "/",
     component: LandingPage,
+    props: (route) => ({
+      lang:
+        route.query.lang || (navigator.language.includes("es") ? "es" : "en"),
+    }),
   },
   {
     path: "/play",
     component: GameView,
+    props: (route) => ({
+      lang:
+        route.query.lang || (navigator.language.includes("es") ? "es" : "en"),
+    }),
   },
   {
     path: "/terms",
@@ -48,6 +56,22 @@ const router = createRouter({
     // (aunque no todos los navegadores lo soportan igual).
     return { top: 0, behavior: "smooth" };
   },
+});
+
+// Guardia global para agregar `lang` como query param
+router.beforeEach((to, from, next) => {
+  const selectedLang =
+    localStorage.getItem("lang") ||
+    (navigator.language.includes("es") ? "es" : "en");
+
+  if (!to.query.lang) {
+    next({
+      ...to,
+      query: { ...to.query, lang: selectedLang },
+    });
+  } else {
+    next();
+  }
 });
 
 export default router;
