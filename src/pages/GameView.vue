@@ -93,12 +93,20 @@
               controls
               class="w-full"
             ></audio>
-            <div class=" flex justify-center " v-else-if="clueObj.type === 'image' && imageUrl">
+            <div
+              class="flex justify-center"
+              v-else-if="clueObj.type === 'image' && imageUrl"
+            >
               <img
-              :src="imageUrl"
-              alt="Imagen de la celebridad"
-              style="image-rendering: pixelated; width: 256px; height: auto; filter: blur(3px);"
-            />
+                :src="imageUrl"
+                alt="Imagen de la celebridad"
+                style="
+                  image-rendering: pixelated;
+                  width: 256px;
+                  height: auto;
+                  filter: blur(3px);
+                "
+              />
             </div>
             <div v-else>
               <div class="flex items-center justify-center">
@@ -124,8 +132,6 @@
                 </svg>
               </div>
             </div>
-
-
           </div>
         </transition-group>
 
@@ -141,12 +147,26 @@
             />
           </div>
           <div class="mt-3">
+            <!-- centrado -->
             <button
               @click="onGuess"
-              class="font-montserrat bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 mr-2 transition hover:scale-105"
+              :disabled="isGuessing"
+              class="font-montserrat bg-green-600 text-white px-4 py-2 rounded mr-2 transition hover:scale-105"
             >
-              {{ t("guessButton") }}
+              <span v-if="!isGuessing">{{ t("guessButton") }}</span>
+              <span class="flex items-center justify-center" v-else>
+                {{ t("guessButton") }}
+                <span class="relative flex h-5 w-5 ms-2">
+                  <span
+                    class="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"
+                  ></span>
+                  <span
+                    class="relative inline-flex rounded-full h-5 w-5 bg-white"
+                  ></span>
+                </span>
+              </span>
             </button>
+
             <button
               @click="onSkip"
               class="font-montserrat bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700 transition hover:scale-105"
@@ -172,9 +192,21 @@
           </div>
           <button
             @click="onGuess"
-            class="font-montserrat bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 mr-2 transition hover:scale-105 mt-3"
+            :disabled="isGuessing"
+            class="font-montserrat bg-green-600 text-white px-4 py-2 rounded mr-2 transition hover:scale-105 mt-2"
           >
-            {{ t("guessButton") }}
+            <span v-if="!isGuessing">{{ t("guessButton") }}</span>
+            <span class="flex items-center justify-center" v-else>
+              {{ t("guessButton") }}
+              <span class="relative flex h-5 w-5 ms-2">
+                <span
+                  class="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"
+                ></span>
+                <span
+                  class="relative inline-flex rounded-full h-5 w-5 bg-white"
+                ></span>
+              </span>
+            </span>
           </button>
         </div>
 
@@ -264,7 +296,7 @@ export default {
     },
   },
   setup(props) {
-    const imageUrl = ref('');
+    const imageUrl = ref("");
 
     const showRulesModal = ref(false);
     const gameState = ref(null);
@@ -276,6 +308,7 @@ export default {
     const localFinished = ref(false);
     const attempts = ref(0);
     const cluesColors = ref([]);
+    const isGuessing = ref(false);
 
     // Función auxiliar para traducir
     const t = (key, param = null) => {
@@ -293,54 +326,55 @@ export default {
       return translations[key] || key;
     };
 
-
     const fetchCelebrityImage = async (celebrityName) => {
-  const apiUrl = "https://en.wikipedia.org/w/api.php";
-  const query = encodeURIComponent(celebrityName);
-  const params = new URLSearchParams({
-    action: 'query',
-            titles: celebrityName,
-            prop: 'pageimages',
-            format: 'json',
-            pithumbsize: 100,
-            origin: '*', // Importante para evitar problemas de CORS.
-  });
+      const apiUrl = "https://en.wikipedia.org/w/api.php";
+      const query = encodeURIComponent(celebrityName);
+      const params = new URLSearchParams({
+        action: "query",
+        titles: celebrityName,
+        prop: "pageimages",
+        format: "json",
+        pithumbsize: 100,
+        origin: "*", // Importante para evitar problemas de CORS.
+      });
 
-  try {
-    const response = await fetch(`${apiUrl}?${params}`);
-    const data = await response.json();
-    if (data.query?.pages) {
-      const page = Object.values(data.query.pages)[0]; // Primer resultado
-      if (page.thumbnail?.source) {
-        imageUrl.value = page.thumbnail.source; // URL de la imagen
-      } else {
-        console.error("No se encontró imagen para la celebridad:", celebrityName);
-        imageUrl.value = ""; // Vaciar si no hay imagen
+      try {
+        const response = await fetch(`${apiUrl}?${params}`);
+        const data = await response.json();
+        if (data.query?.pages) {
+          const page = Object.values(data.query.pages)[0]; // Primer resultado
+          if (page.thumbnail?.source) {
+            imageUrl.value = page.thumbnail.source; // URL de la imagen
+          } else {
+            console.error(
+              "No se encontró imagen para la celebridad:",
+              celebrityName
+            );
+            imageUrl.value = ""; // Vaciar si no hay imagen
+          }
+        } else {
+          console.error(
+            "No se encontraron resultados para la celebridad:",
+            celebrityName
+          );
+          imageUrl.value = ""; // Vaciar si no hay resultados
+        }
+      } catch (error) {
+        console.error("Error al obtener la imagen de MediaWiki:", error);
+        imageUrl.value = ""; // Vaciar en caso de error
       }
-    } else {
-      console.error("No se encontraron resultados para la celebridad:", celebrityName);
-      imageUrl.value = ""; // Vaciar si no hay resultados
-    }
-  } catch (error) {
-    console.error("Error al obtener la imagen de MediaWiki:", error);
-    imageUrl.value = ""; // Vaciar en caso de error
-  }
-};
-
-
+    };
 
     // Observa los cambios en gameState.celebrityName y realiza la búsqueda cuando cambie
     watch(
-  () => gameState.celebrityName,
-  (newName) => {
-    if (newName) {
-      fetchCelebrityImage(newName);
-    }
-  },
-  { immediate: true }
-);
-
-
+      () => gameState.celebrityName,
+      (newName) => {
+        if (newName) {
+          fetchCelebrityImage(newName);
+        }
+      },
+      { immediate: true }
+    );
 
     // Funciones para abrir/cerrar el modal
     const openRulesModal = () => {
@@ -358,7 +392,6 @@ export default {
         todayStr,
         props.lang
       );
-    
 
       gameState.value = data;
       cluesColors.value = Array(allClues.value.length).fill("border-amber-300");
@@ -384,7 +417,7 @@ export default {
 
       setTimeout(() => {
         if (gameState.value.celebrityName) {
-        fetchCelebrityImage(gameState.value.celebrityName);
+          fetchCelebrityImage(gameState.value.celebrityName);
         }
       }, 500);
     });
@@ -438,62 +471,67 @@ export default {
 
     // Adivinar
     async function onGuess() {
-      if (localFinished.value) return;
+      if (localFinished.value || isGuessing.value) return;
       if (!userGuess.value.trim()) {
         return;
       }
 
-      // Sumar attempts
-      await updateAttemptsInFirestore();
+      isGuessing.value = true; // Bloquea nuevas ejecuciones
+      try {
+        await updateAttemptsInFirestore();
 
-      const guessNormalized = userGuess.value.trim().toLowerCase();
-      const realNameNormalized = gameState.value.celebrityName
-        .trim()
-        .toLowerCase();
+        const guessNormalized = userGuess.value.trim().toLowerCase();
+        const realNameNormalized = gameState.value.celebrityName
+          .trim()
+          .toLowerCase();
 
-      const correct =
-        guessNormalized.includes(realNameNormalized) ||
-        realNameNormalized.includes(guessNormalized);
+        const correct =
+          guessNormalized.includes(realNameNormalized) ||
+          realNameNormalized.includes(guessNormalized);
 
-      if (correct) {
-        result.value = true;
-        localFinished.value = true;
-        cluesColors.value = cluesColors.value.map(() => "border-green-500");
-
-        revealedCluesCount.value = allClues.value.length;
-        userGuess.value = "";
-
-        await updateDailyGame(USER_PLAYER_ID.value, todayStr, {
-          finished: true,
-          guessedCorrectly: true,
-          attempts: attempts.value,
-        });
-        gameState.value.finished = true;
-      } else {
-        // Falla => coloreamos la pista actual en rojo
-        const currentIndex = revealedCluesCount.value - 1;
-        if (currentIndex >= 0 && currentIndex < cluesColors.value.length) {
-          cluesColors.value[currentIndex] = "border-red-500";
-        }
-
-        if (revealedCluesCount.value < allClues.value.length) {
-          revealedCluesCount.value++;
-          await updateDailyGame(USER_PLAYER_ID.value, todayStr, {
-            revealedCluesCount: revealedCluesCount.value,
-            attempts: attempts.value,
-          });
-        } else {
-          // Sin pistas => game over
-          result.value = false;
+        if (correct) {
+          result.value = true;
           localFinished.value = true;
+          cluesColors.value = cluesColors.value.map(() => "border-green-500");
+
+          revealedCluesCount.value = allClues.value.length;
+          userGuess.value = "";
 
           await updateDailyGame(USER_PLAYER_ID.value, todayStr, {
             finished: true,
-            guessedCorrectly: false,
+            guessedCorrectly: true,
             attempts: attempts.value,
           });
           gameState.value.finished = true;
+        } else {
+          const currentIndex = revealedCluesCount.value - 1;
+          if (currentIndex >= 0 && currentIndex < cluesColors.value.length) {
+            cluesColors.value[currentIndex] = "border-red-500";
+          }
+
+          if (revealedCluesCount.value < allClues.value.length) {
+            revealedCluesCount.value++;
+            await updateDailyGame(USER_PLAYER_ID.value, todayStr, {
+              revealedCluesCount: revealedCluesCount.value,
+              attempts: attempts.value,
+            });
+          } else {
+            result.value = false;
+            localFinished.value = true;
+
+            await updateDailyGame(USER_PLAYER_ID.value, todayStr, {
+              finished: true,
+              guessedCorrectly: false,
+              attempts: attempts.value,
+            });
+            gameState.value.finished = true;
+          }
+          userGuess.value = "";
         }
+      } catch (error) {
+        console.error("Error en la función onGuess:", error);
+      } finally {
+        isGuessing.value = false; // Permite nuevas ejecuciones
       }
     }
 
@@ -527,7 +565,6 @@ export default {
         });
         gameState.value.finished = true;
       }
-
     }
 
     // Tiempo hasta medianoche local
@@ -565,6 +602,7 @@ export default {
       openRulesModal,
       closeRulesModal,
       imageUrl,
+      isGuessing,
       // Función traductora
       t,
     };
