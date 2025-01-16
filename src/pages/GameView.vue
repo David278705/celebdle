@@ -93,11 +93,39 @@
               controls
               class="w-full"
             ></audio>
-            <img
-              v-else-if="clueObj.type === 'image'"
-              :src="clueObj.content"
-              style="image-rendering: pixelated; width: 256px; height: auto"
+            <div class=" flex justify-center " v-else-if="clueObj.type === 'image' && imageUrl">
+              <img
+              :src="imageUrl"
+              alt="Imagen de la celebridad"
+              style="image-rendering: pixelated; width: 256px; height: auto; filter: blur(3px);"
             />
+            </div>
+            <div v-else>
+              <div class="flex items-center justify-center">
+                <svg
+                  class="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    class="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    stroke-width="4"
+                  ></circle>
+                  <path
+                    class="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  ></path>
+                </svg>
+              </div>
+            </div>
+
+
           </div>
         </transition-group>
 
@@ -218,7 +246,7 @@
 </template>
 
 <script>
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, onMounted, watch } from "vue";
 import { getOrCreateDailyGame, updateDailyGame } from "@/services/gameService";
 import i18n from "@/lang.js"; // <-- importamos el objeto de traducciones
 
@@ -236,6 +264,8 @@ export default {
     },
   },
   setup(props) {
+    const imageUrl = ref('');
+
     const showRulesModal = ref(false);
     const gameState = ref(null);
     const USER_PLAYER_ID = ref(null);
@@ -263,6 +293,55 @@ export default {
       return translations[key] || key;
     };
 
+
+    const fetchCelebrityImage = async (celebrityName) => {
+  const apiUrl = "https://en.wikipedia.org/w/api.php";
+  const query = encodeURIComponent(celebrityName);
+  const params = new URLSearchParams({
+    action: 'query',
+            titles: celebrityName,
+            prop: 'pageimages',
+            format: 'json',
+            pithumbsize: 100,
+            origin: '*', // Importante para evitar problemas de CORS.
+  });
+
+  try {
+    const response = await fetch(`${apiUrl}?${params}`);
+    const data = await response.json();
+    if (data.query?.pages) {
+      const page = Object.values(data.query.pages)[0]; // Primer resultado
+      if (page.thumbnail?.source) {
+        imageUrl.value = page.thumbnail.source; // URL de la imagen
+      } else {
+        console.error("No se encontró imagen para la celebridad:", celebrityName);
+        imageUrl.value = ""; // Vaciar si no hay imagen
+      }
+    } else {
+      console.error("No se encontraron resultados para la celebridad:", celebrityName);
+      imageUrl.value = ""; // Vaciar si no hay resultados
+    }
+  } catch (error) {
+    console.error("Error al obtener la imagen de MediaWiki:", error);
+    imageUrl.value = ""; // Vaciar en caso de error
+  }
+};
+
+
+
+    // Observa los cambios en gameState.celebrityName y realiza la búsqueda cuando cambie
+    watch(
+  () => gameState.celebrityName,
+  (newName) => {
+    if (newName) {
+      fetchCelebrityImage(newName);
+    }
+  },
+  { immediate: true }
+);
+
+
+
     // Funciones para abrir/cerrar el modal
     const openRulesModal = () => {
       showRulesModal.value = true;
@@ -279,6 +358,7 @@ export default {
         todayStr,
         props.lang
       );
+    
 
       gameState.value = data;
       cluesColors.value = Array(allClues.value.length).fill("border-amber-300");
@@ -303,10 +383,9 @@ export default {
       }
 
       setTimeout(() => {
-        window.scrollTo({
-          top: document.body.scrollHeight,
-          behavior: "smooth",
-        });
+        if (gameState.value.celebrityName) {
+        fetchCelebrityImage(gameState.value.celebrityName);
+        }
       }, 500);
     });
 
@@ -328,7 +407,7 @@ export default {
       };
       const imageClue = {
         type: "image",
-        content: gameState.value.celebrityImage,
+        content: imageUrl.value,
       };
       return [...textClues, audioClue, imageClue];
     });
@@ -448,12 +527,7 @@ export default {
         });
         gameState.value.finished = true;
       }
-      setTimeout(() => {
-        window.scrollTo({
-          top: document.body.scrollHeight,
-          behavior: "smooth",
-        });
-      }, 500);
+
     }
 
     // Tiempo hasta medianoche local
@@ -490,7 +564,7 @@ export default {
       timeLeft,
       openRulesModal,
       closeRulesModal,
-
+      imageUrl,
       // Función traductora
       t,
     };

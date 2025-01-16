@@ -39,7 +39,6 @@ export async function getOrCreateDailyGame(userId, dateStr, lang) {
       date: dateStr,
       celebrityId: chosenCeleb.id,
       celebrityName: chosenCeleb.name,
-      celebrityImage: chosenCeleb.imageUrl,
       celebrityAudio: chosenCeleb.audioUrl,
       clues, // array con 4 pistas textuales
       currentStep: 1, // inicia en la primera pista

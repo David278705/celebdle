@@ -30,17 +30,18 @@ export async function getClues(celebrityName, lang) {
         lang === "es"
           ? `
             Genera 4 pistas cortas y creativas sobre la celebridad llamada "${celebrityName}",
-            sin revelar su nombre.
+            sin revelar su nombre ni mencionar detalles de su profesión o al menos no de forma literal.
             Deben estar ordenadas de la más difícil (pista 1) a la más fácil (pista 4).
             Cada pista debe ser solo una oración. Todas las pistas deben ser difíciles, casi imposibles de adivinar.
           `
           : `
             Generate 4 short and creative clues about the celebrity named "${celebrityName}",
-            without revealing their name.
+            without revealing their name or mentioning details about their profession or at least not in a literal way.
             They must be ordered from the hardest (clue 1) to the easiest (clue 4).
             Each clue must be just one sentence. All clues should be challenging, almost impossible to guess.
           `,
-    },
+    }
+    
   ];
 
   const response = await openai.chat.completions.create({

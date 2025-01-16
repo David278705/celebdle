@@ -36,7 +36,7 @@ export default {
           ? "(Texto)"
           : index + 1 == 5
           ? "(Audio Entrevista)"
-          : "(Imagen)"
+          : "(Imagen Borrosa)"
       }`;
     },
 
@@ -91,7 +91,7 @@ export default {
           ? "(Text)"
           : index + 1 == 5
           ? "(Interview Audio)"
-          : "(Image)"
+          : "(Blurred Image)"
       }`;
     },
 
