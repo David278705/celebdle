@@ -4,7 +4,7 @@ import vue from "@vitejs/plugin-vue";
 
 // https://vite.dev/config/
 export default defineConfig({
-  base: "/celeb-dle/",
+  base: "/celebdle/",
   plugins: [vue()],
   resolve: {
     alias: {
