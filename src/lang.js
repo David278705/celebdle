@@ -15,6 +15,14 @@ export default {
     closeButton: "Cerrar",
     landingTitle: "¡Bienvenido a Celebdle!",
     landingTitleWelcome: "¡Bienvenido a ",
+    // Sección de estadísticas
+    statsTitle: "ESTADÍSTICAS",
+    statsFoundLabel: "Encontrado",
+    statsCurrentStreakLabel: "Racha actual",
+    statsMaxStreakLabel: "Racha máxima",
+    statsCloseButton: "Cerrar",
+    // Si deseas traducir la "X" por otra cosa, o dejarla igual
+    statsXLabel: "X",
     landingDescription:
       "Adivina la celebridad del día con pistas generadas por IA y compite contra tus amigos para ver quién acierta más rápido.",
     landingPlayButton: "¡Comienza a jugar!",
@@ -74,6 +82,12 @@ export default {
       "Guess the celebrity of the day with AI-generated clues and compete against your friends to see who can guess faster.",
     landingPlayButton: "Start playing!",
     poweredBy: "powered by",
+    statsTitle: "STATISTICS",
+    statsFoundLabel: "Found",
+    statsCurrentStreakLabel: "Current Streak",
+    statsMaxStreakLabel: "Max Streak",
+    statsCloseButton: "Close",
+    statsXLabel: "X",
 
     // ====== FOOTER keys (nuevas) ======
     footerCopyright(year) {

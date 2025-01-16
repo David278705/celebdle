@@ -9,35 +9,64 @@
       />
     </a>
   </div>
+  <!-- Ícono de pregunta arriba a la derecha -->
+  <!-- Íconos arriba a la derecha -->
+  <div class="fixed top-4 right-4 flex items-center space-x-3">
+    <!-- Ícono de pregunta -->
+    <button
+      class="text-amber-300 hover:text-amber-300 transition text-2xl p-2 rounded-full hover:scale-110 hover:text-white bg-neutral-800"
+      @click="openRulesModal"
+      aria-label="Mostrar reglas"
+    >
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke-width="1.5"
+        stroke="currentColor"
+        class="size-6"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0
+                 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442
+                 -.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 1 1-18 0
+                 9 9 0 0 1 18 0Zm-9 5.25h.008v.008H12v-.008Z"
+        />
+      </svg>
+    </button>
+
+    <!-- Ícono de estadísticas -->
+    <button
+      class="text-amber-300 hover:text-amber-300 transition text-2xl p-2 rounded-full hover:scale-110 hover:text-white bg-neutral-800"
+      @click="openStatsModal"
+      aria-label="Mostrar estadísticas"
+    >
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke-width="1.5"
+        stroke="currentColor"
+        class="size-6"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          d="M3.75 3v18h16.5V3m-12 9v6m4-10v10m4-6v6"
+        />
+      </svg>
+    </button>
+  </div>
 
   <transition name="fade-in-up" appear>
     <!-- Tarjeta principal con tamaño fijo -->
     <div
+      id="GameScreen"
       style="overflow-y: scroll"
       class="dark text-white p-4 bg-neutral-800 rounded-lg w-full sm:w-[600px] min-h-[70vh] max-h-[70vh] mx-auto flex flex-col"
     >
-      <!-- Ícono de pregunta arriba a la derecha -->
-      <button
-        class="font-montserrat absolute top-4 right-4 text-amber-300 hover:text-amber-300 transition text-2xl p-2 rounded-full transition hover:scale-110 hover:text-white bg-neutral-800"
-        @click="openRulesModal"
-        :aria-label="t('questionIconAlt')"
-      >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke-width="1.5"
-          stroke="currentColor"
-          class="size-6"
-        >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 5.25h.008v.008H12v-.008Z"
-          />
-        </svg>
-      </button>
-
       <h2 class="font-montserrat text-2xl font-bold mb-4 text-center">
         {{ t("gameTitle") }}
       </h2>
@@ -245,7 +274,7 @@
       @click.self="closeRulesModal"
     >
       <div
-        class="bg-neutral-700 text-white p-6 rounded-lg shadow-md w-11/12 sm:w-96"
+        class="bg-neutral-700 text-white p-6 px-3 rounded-lg shadow-md w-11/12 sm:w-96"
         @click.stop
       >
         <!-- Título del modal -->
@@ -275,6 +304,84 @@
       </div>
     </div>
   </transition>
+
+  <!-- Statistics Modal -->
+  <transition name="fade">
+    <div
+      v-if="showStatsModal"
+      class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+      @click.self="closeStatsModal"
+    >
+      <div
+        class="bg-neutral-700 text-white p-6 rounded-lg shadow-md w-11/12 sm:w-96"
+        @click.stop
+      >
+        <h2 class="text-2xl font-bold mb-4 text-center">
+          {{ t("statsTitle") }}
+        </h2>
+
+        <!-- Distribution of results (1..6, X) -->
+        <div class="space-y-2 mb-4">
+          <div
+            v-for="(count, index) in stats.distribution"
+            :key="index"
+            class="text-sm"
+          >
+            <div class="flex items-center">
+              <span class="w-6 text-right mr-2">
+                <!-- index 1..6, index 0 = 'X' -->
+                <template v-if="index === 0">{{ t("statsXLabel") }}</template>
+                <template v-else>{{ index }}</template>
+              </span>
+              <div class="flex-1 bg-neutral-600 h-4 rounded relative mr-2">
+                <!-- Dynamic width bar, based on max distribution -->
+                <div
+                  class="bg-amber-300 h-4 rounded-l"
+                  :style="{ width: getDistributionWidth(count) + '%' }"
+                ></div>
+              </div>
+              <span class="w-6 text-right">
+                {{ count }}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Summary (Found, Current Streak, Max Streak) -->
+        <div class="flex justify-around items-center mb-4">
+          <div class="text-center">
+            <p class="text-xl font-bold">
+              <!-- Wins / Played (x%) -->
+              {{ stats.wins }}/{{ stats.played }} ({{ getWinPercentage() }}%)
+            </p>
+            <p class="text-sm text-neutral-400">{{ t("statsFoundLabel") }}</p>
+          </div>
+          <div class="text-center">
+            <p class="text-xl font-bold">{{ stats.currentStreak }}</p>
+            <p class="text-sm text-neutral-400">
+              {{ t("statsCurrentStreakLabel") }}
+            </p>
+          </div>
+          <div class="text-center">
+            <p class="text-xl font-bold">{{ stats.maxStreak }}</p>
+            <p class="text-sm text-neutral-400">
+              {{ t("statsMaxStreakLabel") }}
+            </p>
+          </div>
+        </div>
+
+        <!-- Close button -->
+        <div class="flex flex-col space-y-2 mt-4">
+          <button
+            class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition"
+            @click="closeStatsModal"
+          >
+            {{ t("statsCloseButton") }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </transition>
 </template>
 
 <script>
@@ -299,6 +406,8 @@ export default {
     const imageUrl = ref("");
 
     const showRulesModal = ref(false);
+    const showStatsModal = ref(false);
+
     const gameState = ref(null);
     const USER_PLAYER_ID = ref(null);
 
@@ -309,6 +418,16 @@ export default {
     const attempts = ref(0);
     const cluesColors = ref([]);
     const isGuessing = ref(false);
+
+    // Stats en localStorage
+    const stats = ref({
+      played: 0,
+      wins: 0,
+      distribution: [0, 0, 0, 0, 0, 0, 0], // 0 -> X, 1..6 -> tries
+      currentStreak: 0,
+      maxStreak: 0,
+      lastPlayed: null,
+    });
 
     // Función auxiliar para traducir
     const t = (key, param = null) => {
@@ -376,6 +495,44 @@ export default {
       { immediate: true }
     );
 
+    watch([imageUrl, revealedCluesCount], () => {
+      const gameScreen = document.getElementById("GameScreen");
+
+      if (gameScreen) {
+        setTimeout(() => {
+          // Registro del tiempo de inicio
+          const startTime = Date.now();
+          const maxDuration = 2000; // 3 segundos en milisegundos
+
+          const scrollToBottom = () => {
+            const elapsedTime = Date.now() - startTime;
+            const atBottom =
+              Math.abs(
+                gameScreen.scrollHeight -
+                  gameScreen.scrollTop -
+                  gameScreen.clientHeight
+              ) < 1; // Ajusta la tolerancia si es necesario
+
+            if (
+              (!atBottom && elapsedTime < maxDuration) ||
+              (!imageUrl && revealedCluesCount.value > 5)
+            ) {
+              gameScreen.scrollTo({
+                top: gameScreen.scrollHeight,
+                behavior: "smooth",
+              });
+
+              // Esperar 100ms y volver a comprobar
+              setTimeout(scrollToBottom, 100);
+            }
+          };
+
+          // Iniciar el bucle
+          scrollToBottom();
+        }, 200);
+      }
+    });
+
     // Funciones para abrir/cerrar el modal
     const openRulesModal = () => {
       showRulesModal.value = true;
@@ -384,7 +541,16 @@ export default {
       showRulesModal.value = false;
     };
 
+    // Stats modal
+
+    const openStatsModal = () => {
+      loadStats();
+      showStatsModal.value = true;
+    };
+    const closeStatsModal = () => (showStatsModal.value = false);
+
     onMounted(async () => {
+      loadStats();
       const userIP = await getPublicIP();
       USER_PLAYER_ID.value = `USER_${userIP}`;
       const data = await getOrCreateDailyGame(
@@ -469,6 +635,66 @@ export default {
       }
     }
 
+    function loadStats() {
+      const stored = localStorage.getItem("celebStats");
+      if (stored) {
+        try {
+          stats.value = JSON.parse(stored);
+        } catch (e) {
+          console.error("Error al parsear stats:", e);
+        }
+      }
+    }
+
+    function saveStats() {
+      localStorage.setItem("celebStats", JSON.stringify(stats.value));
+    }
+
+    function updateStatsOnWin(tryNumber) {
+      // tryNumber va de 1..6
+      stats.value.played++;
+      stats.value.wins++;
+      stats.value.distribution[tryNumber]++;
+      // Racha
+      const today = new Date().toISOString().slice(0, 10);
+      if (stats.value.lastPlayed === today) {
+        // Si ya jugó hoy, no cambiar racha
+        // (o maneja tu lógica si quieres permitir reinicio)
+      } else {
+        stats.value.lastPlayed = today;
+        stats.value.currentStreak++;
+        if (stats.value.currentStreak > stats.value.maxStreak) {
+          stats.value.maxStreak = stats.value.currentStreak;
+        }
+      }
+      saveStats();
+    }
+
+    function updateStatsOnLose() {
+      stats.value.played++;
+      // index 0 => X
+      stats.value.distribution[0]++;
+      // Resetea racha
+      const today = new Date().toISOString().slice(0, 10);
+      if (stats.value.lastPlayed !== today) {
+        stats.value.currentStreak = 0;
+        stats.value.lastPlayed = today;
+      }
+      saveStats();
+    }
+
+    // Helpers para la UI en modal
+    function getWinPercentage() {
+      if (stats.value.played === 0) return 0;
+      return Math.round((stats.value.wins / stats.value.played) * 100);
+    }
+
+    function getDistributionWidth(count) {
+      const maxVal = Math.max(...stats.value.distribution);
+      if (maxVal === 0) return 0;
+      return (count / maxVal) * 100;
+    }
+
     // Adivinar
     async function onGuess() {
       if (localFinished.value || isGuessing.value) return;
@@ -493,6 +719,16 @@ export default {
           result.value = true;
           localFinished.value = true;
           cluesColors.value = cluesColors.value.map(() => "border-green-500");
+
+          // Actualizar stats => attempt = revealedCluesCount
+          // (ej. si adivinó en 3er pista => revealedCluesCount=3)
+          const tryNumber = revealedCluesCount.value; // 1..6
+          if (tryNumber > 6) {
+            // si por lógica pasa de 6, forzamos a 6
+            updateStatsOnWin(6);
+          } else {
+            updateStatsOnWin(tryNumber);
+          }
 
           revealedCluesCount.value = allClues.value.length;
           userGuess.value = "";
@@ -525,6 +761,8 @@ export default {
               attempts: attempts.value,
             });
             gameState.value.finished = true;
+
+            updateStatsOnLose();
           }
           userGuess.value = "";
         }
@@ -564,6 +802,8 @@ export default {
           revealedCluesCount: revealedCluesCount.value,
         });
         gameState.value.finished = true;
+        // Stats => No adivinó => X
+        updateStatsOnLose();
       }
     }
 
@@ -605,6 +845,16 @@ export default {
       isGuessing,
       // Función traductora
       t,
+
+      showStatsModal,
+      openStatsModal,
+      closeStatsModal,
+
+      stats,
+      loadStats,
+      saveStats,
+      getWinPercentage,
+      getDistributionWidth,
     };
   },
 };

@@ -5,6 +5,7 @@ import TermsView from "@/pages/footer/TermsView.vue";
 import PrivacyView from "@/pages/footer/PrivacyView.vue";
 import CookiesView from "@/pages/footer/CookiesView.vue";
 import DmcaView from "@/pages/footer/DmcaView.vue";
+import AdminCelebrities from "@/pages/admin/AdminCelebrities.vue";
 
 const routes = [
   {
@@ -40,6 +41,14 @@ const routes = [
     path: "/dmca",
     name: "DMCA",
     component: DmcaView,
+  },
+  {
+    path: "/admin/3184239974",
+    name: "AdminCelebrities",
+    component: AdminCelebrities,
+    props: (route) => ({
+      lang: route.query.lang,
+    }),
   },
 ];
 
