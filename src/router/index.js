@@ -1,4 +1,4 @@
-import { createRouter, createWebHistory } from "vue-router";
+import { createRouter, createWebHashHistory } from "vue-router";
 import LandingPage from "@/pages/LandingPage.vue";
 import GameView from "@/pages/GameView.vue";
 import TermsView from "@/pages/footer/TermsView.vue";
@@ -49,7 +49,7 @@ const routes = [
 ];
 
 const router = createRouter({
-  history: createWebHistory(),
+  history: createWebHashHistory(),
   routes,
   // <--- Aquí añadimos scrollBehavior:
   scrollBehavior(to, from, savedPosition) {
