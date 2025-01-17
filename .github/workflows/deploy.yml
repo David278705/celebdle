@@ -1,5 +1,4 @@
-- name: Deploy to GitHub Pages
-run: echo "VITE_OPENAI_API_KEY=${{ secrets.OPEN_AI_API_KEY }}" >> $GITHUB_ENV
+name: Deploy to GitHub Pages
 
 on:
   # Despliega cuando hagas push a la rama "main" (o la que uses).
@@ -28,6 +27,9 @@ jobs:
       # 4. Configurar las variables de entorno (Secrets)
       - name: Set environment variables
         run: echo "VITE_API_KEY=${{ secrets.VITE_API_KEY }}" >> $GITHUB_ENV
+
+      - name: Set environment variables
+        run: echo "VITE_OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}" >> $GITHUB_ENV
 
       # 5. Compilar (build) la aplicación
       - name: Build
