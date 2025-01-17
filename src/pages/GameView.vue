@@ -630,7 +630,7 @@ export default {
         const data = await response.json();
         return data.ip;
       } catch (error) {
-        console.error("Error al obtener la IP pública:", error);
+        console.error("Error al obtener la IP pública: ", error);
         return null;
       }
     }
