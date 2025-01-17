@@ -11,7 +11,9 @@
   </div>
   <!-- Ícono de pregunta arriba a la derecha -->
   <!-- Íconos arriba a la derecha -->
-  <div class="fixed top-4 right-4 flex items-center space-x-3">
+  <div
+    class="fixed top-4 right-4 flex items-center space-x-3 bg-neutral-700 rounded-xl p-2"
+  >
     <!-- Ícono de pregunta -->
     <button
       class="text-amber-300 hover:text-amber-300 transition text-2xl p-2 rounded-full hover:scale-110 hover:text-white bg-neutral-800"
@@ -65,7 +67,7 @@
     <div
       id="GameScreen"
       style="overflow-y: scroll"
-      class="dark text-white p-4 bg-neutral-800 rounded-lg w-full sm:w-[600px] min-h-[70vh] max-h-[70vh] mx-auto flex flex-col"
+      class="dark text-white p-4 bg-neutral-800 rounded-lg w-full sm:w-[600px] sm:min-h-[70vh] sm:max-h-[70vh] mx-auto flex flex-col"
     >
       <h2 class="font-montserrat text-2xl font-bold mb-4 text-center">
         {{ t("gameTitle") }}
@@ -128,6 +130,7 @@
             >
               <img
                 :src="imageUrl"
+                id="celebrityImage"
                 alt="Imagen de la celebridad"
                 style="
                   image-rendering: pixelated;
@@ -513,9 +516,14 @@ export default {
                   gameScreen.clientHeight
               ) < 1; // Ajusta la tolerancia si es necesario
 
+            const generalAtBottom =
+              Math.abs(window.innerHeight - window.scrollY) < 1;
+            const imageElement = document.querySelector("#celebrityImage"); // Ajusta el selector si es necesario
+
             if (
               (!atBottom && elapsedTime < maxDuration) ||
-              (!imageUrl && revealedCluesCount.value > 5)
+              (!imageUrl && revealedCluesCount.value > 5) ||
+              !imageElement?.complete
             ) {
               gameScreen.scrollTo({
                 top: gameScreen.scrollHeight,
@@ -524,6 +532,13 @@ export default {
 
               // Esperar 100ms y volver a comprobar
               setTimeout(scrollToBottom, 100);
+            }
+            if (!generalAtBottom) {
+              // bajar tambien la pagina en general
+              window.scrollTo({
+                top: window.innerHeight,
+                behavior: "smooth",
+              });
             }
           };
 

@@ -71,23 +71,20 @@ router.beforeEach((to, from, next) => {
   const lang = to.params.lang;
 
   // Si el idioma ya es válido y está en el lugar correcto, continuamos
-  if (lang && supportedLangs.includes(lang)) {
+
+  // Determinamos la nueva ruta sin el idioma actual
+  const pathWithoutLang = to.path.replace(/\/(es|en)$/, ""); // Elimina el idioma al final si ya existe
+  const newPath = `${pathWithoutLang}/${defaultLang}`.replace(/\/\//g, "/");
+
+  // Redirigimos solo si la nueva ruta es diferente a la actual
+  if (to.fullPath === newPath) {
     next();
   } else {
-    // Determinamos la nueva ruta sin el idioma actual
-    const pathWithoutLang = to.path.replace(/\/(es|en)$/, ""); // Elimina el idioma al final si ya existe
-    const newPath = `${pathWithoutLang}/${defaultLang}`.replace(/\/\//g, "/");
-
-    // Redirigimos solo si la nueva ruta es diferente a la actual
-    if (to.fullPath === newPath) {
-      next();
-    } else {
-      next({
-        path: newPath,
-        query: to.query,
-        replace: true,
-      });
-    }
+    next({
+      path: newPath,
+      query: to.query,
+      replace: true,
+    });
   }
 });
 

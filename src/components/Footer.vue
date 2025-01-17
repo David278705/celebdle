@@ -78,23 +78,7 @@ export default {
 
     const changeLanguage = (newLang) => {
       localStorage.setItem("lang", newLang);
-
-      const currentPath = window.location.pathname;
-      const pathSegments = currentPath.split("/").filter(Boolean); // Divide el path y elimina segmentos vacíos
-      const supportedLangs = ["es", "en"];
-
-      // Verifica si el último segmento es un idioma válido
-      if (supportedLangs.includes(pathSegments[pathSegments.length - 1])) {
-        // Reemplaza el idioma actual con el nuevo
-        pathSegments[pathSegments.length - 1] = newLang;
-      } else {
-        // Agrega el idioma al final si no está presente
-        pathSegments.push(newLang);
-      }
-
-      // Redirige al usuario a la nueva URL
-      const newPath = `/${pathSegments.join("/")}`;
-      window.location.pathname = newPath;
+      window.location.reload();
     };
 
     return {
