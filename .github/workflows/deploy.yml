@@ -1,5 +1,5 @@
 name: Deploy to GitHub Pages
-run: echo "VITE_OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}" >> $GITHUB_ENV
+run: echo "VITE_OPENAI_API_KEY=${{ secrets.OPEN_AI_API_KEY }}" >> $GITHUB_ENV
 
 on:
   # Despliega cuando hagas push a la rama "main" (o la que uses).
