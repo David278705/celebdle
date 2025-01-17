@@ -1,0 +1,51 @@
+name: Deploy Vite + Vue to GitHub Pages
+
+on:
+  # Despliega cuando hagas push a la rama "main" (o la que uses).
+  push:
+    branches: ["main"]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Chequear (checkout) el código
+      - name: Check out the repository
+        uses: actions/checkout@v3
+
+      # 2. Instalar Node.js
+      - name: Use Node.js 16
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16
+
+      # 3. Instalar dependencias
+      - name: Install dependencies
+        run: npm install
+
+      # 4. Configurar las variables de entorno (Secrets)
+      #    Se inyectan como variables de entorno VITE_API_KEY, etc.
+      - name: Set environment variables
+        run: echo "VITE_API_KEY=${{ secrets.VITE_API_KEY }}" >> $GITHUB_ENV
+
+      # 5. Compilar (build) la aplicación
+      - name: Build
+        run: npm run build
+
+      # 6. Cargar los artefactos del build (la carpeta dist)
+      - name: Upload production-ready build files
+        uses: actions/upload-pages-artifact@v1
+        with:
+          path: ./dist
+
+  # Una vez subidos los archivos, se despliegan a GitHub Pages
+  deploy:
+    needs: build-and-deploy
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    steps:
+      - name: Deploy to GitHub Pages
+        uses: actions/deploy-pages@v1
