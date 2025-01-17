@@ -1,8 +1,4 @@
-- name: Use Node.js 18
-  uses: actions/setup-node@v3
-  with:
-    node-version: 18
-
+name: Deploy to GitHub Pages
 
 on:
   # Despliega cuando hagas push a la rama "main" (o la que uses).
@@ -18,18 +14,17 @@ jobs:
       - name: Check out the repository
         uses: actions/checkout@v3
 
-      # 2. Instalar Node.js
-      - name: Use Node.js 16
+      # 2. Instalar Node.js (versión 18)
+      - name: Use Node.js 18
         uses: actions/setup-node@v3
         with:
-          node-version: 16
+          node-version: 18
 
       # 3. Instalar dependencias
       - name: Install dependencies
         run: npm install
 
       # 4. Configurar las variables de entorno (Secrets)
-      #    Se inyectan como variables de entorno VITE_API_KEY, etc.
       - name: Set environment variables
         run: echo "VITE_API_KEY=${{ secrets.VITE_API_KEY }}" >> $GITHUB_ENV
 
