@@ -532,8 +532,11 @@ export default {
 
               // Esperar 100ms y volver a comprobar
               setTimeout(scrollToBottom, 100);
-            }
-            if (!generalAtBottom && elapsedTime < maxDuration) {
+            } else if (
+              (!atBottom && elapsedTime < maxDuration) ||
+              (!imageUrl && revealedCluesCount.value > 5) ||
+              !imageElement?.complete
+            ) {
               // bajar tambien la pagina en general
               window.scrollTo({
                 top: window.innerHeight,
