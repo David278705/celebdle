@@ -1,4 +1,4 @@
-name: Deploy to GitHub Pages
+- name: Deploy to GitHub Pages
 run: echo "VITE_OPENAI_API_KEY=${{ secrets.OPEN_AI_API_KEY }}" >> $GITHUB_ENV
 
 on:
