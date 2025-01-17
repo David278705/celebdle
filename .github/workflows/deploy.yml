@@ -25,10 +25,10 @@ jobs:
         run: npm install
 
       # 4. Configurar las variables de entorno (Secrets)
-      - name: Set open ai api key
+      - name: Set vite api key
         run: echo "VITE_API_KEY=${{ secrets.VITE_API_KEY }}" >> $GITHUB_ENV
 
-      - name: Set firebase api key
+      - name: Set open ai api key
         run: echo "VITE_OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}" >> $GITHUB_ENV
 
       - name: Set firebase auth domain
