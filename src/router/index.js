@@ -9,41 +9,41 @@ import AdminCelebrities from "@/pages/admin/AdminCelebrities.vue";
 
 const routes = [
   {
-    path: "/",
+    path: "/celebdle/",
     component: LandingPage,
     props: (route) => ({
       lang: route.query.lang,
     }),
   },
   {
-    path: "/play",
+    path: "/celebdle/play",
     component: GameView,
     props: (route) => ({
       lang: route.query.lang,
     }),
   },
   {
-    path: "/terms",
+    path: "/celebdle/terms",
     name: "Terms",
     component: TermsView,
   },
   {
-    path: "/privacy",
+    path: "/celebdle/privacy",
     name: "Privacy",
     component: PrivacyView,
   },
   {
-    path: "/cookies",
+    path: "/celebdle/cookies",
     name: "Cookies",
     component: CookiesView,
   },
   {
-    path: "/dmca",
+    path: "/celebdle/dmca",
     name: "DMCA",
     component: DmcaView,
   },
   {
-    path: "/admin/3184239974",
+    path: "/celebdle/admin/3184239974",
     name: "AdminCelebrities",
     component: AdminCelebrities,
     props: (route) => ({

@@ -4,7 +4,7 @@
       <router-view />
     </main>
 
-    <!-- Footer global -->
+    <!-- Footer global  test-->
     <Footer />
   </div>
 </template>

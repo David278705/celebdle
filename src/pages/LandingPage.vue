@@ -69,7 +69,7 @@ export default {
 
     const goToGame = () => {
       // Navegamos a /play (podrías añadir ?lang=... si gustas)
-      router.push("/play");
+      router.push("/celebdle/play");
     };
 
     return {
