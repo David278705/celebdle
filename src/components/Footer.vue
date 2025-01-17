@@ -11,21 +11,21 @@
       <!-- Secciones legales -->
       <nav class="lg:flex gap-4 text-sm text-amber-300">
         <router-link
-          to="/celebdle/terms"
+          to="/terms"
           class="text-amber-300 hover:text-amber-400 transition text-sm"
         >
           {{ t("footerTerms") }}
         </router-link>
         -
         <router-link
-          to="/celebdle/privacy"
+          to="/privacy"
           class="text-amber-300 hover:text-amber-400 transition text-sm"
         >
           {{ t("footerPrivacy") }}
         </router-link>
         -
         <router-link
-          to="/celebdle/cookies"
+          to="/cookies"
           class="text-amber-300 hover:text-amber-400 transition text-sm"
         >
           {{ t("footerCookies") }}
