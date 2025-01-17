@@ -533,7 +533,7 @@ export default {
               // Esperar 100ms y volver a comprobar
               setTimeout(scrollToBottom, 100);
             }
-            if (!generalAtBottom) {
+            if (!generalAtBottom && elapsedTime < maxDuration) {
               // bajar tambien la pagina en general
               window.scrollTo({
                 top: window.innerHeight,
