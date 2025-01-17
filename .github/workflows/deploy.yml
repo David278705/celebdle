@@ -1,4 +1,8 @@
-name: Deploy Vite + Vue to GitHub Pages
+- name: Use Node.js 18
+  uses: actions/setup-node@v3
+  with:
+    node-version: 18
+
 
 on:
   # Despliega cuando hagas push a la rama "main" (o la que uses).
