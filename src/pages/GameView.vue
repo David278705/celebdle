@@ -532,7 +532,8 @@ export default {
 
               // Esperar 100ms y volver a comprobar
               setTimeout(scrollToBottom, 100);
-            } else if (
+            }
+            if (
               (!atBottom && elapsedTime < maxDuration) ||
               (!imageUrl && revealedCluesCount.value > 5) ||
               !imageElement?.complete
