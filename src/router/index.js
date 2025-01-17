@@ -9,41 +9,37 @@ import AdminCelebrities from "@/pages/admin/AdminCelebrities.vue";
 
 const routes = [
   {
-    path: "/",
+    path: "/:lang(es|en)?", // Idioma opcional en la raíz
     component: LandingPage,
-    props: (route) => ({
-      lang: route.query.lang,
-    }),
+    props: (route) => ({ lang: route.params.lang }),
   },
   {
-    path: "/play",
+    path: "/play/:lang(es|en)?", // Idioma opcional en /play
     component: GameView,
-    props: (route) => ({
-      lang: route.query.lang,
-    }),
+    props: (route) => ({ lang: route.params.lang }),
   },
   {
-    path: "/terms",
+    path: "/terms/:lang(es|en)?",
     name: "Terms",
     component: TermsView,
   },
   {
-    path: "/privacy",
+    path: "/privacy/:lang(es|en)?",
     name: "Privacy",
     component: PrivacyView,
   },
   {
-    path: "/cookies",
+    path: "/cookies/:lang(es|en)?",
     name: "Cookies",
     component: CookiesView,
   },
   {
-    path: "/dmca",
+    path: "/dmca/:lang(es|en)?",
     name: "DMCA",
     component: DmcaView,
   },
   {
-    path: "/admin/3184239974",
+    path: "/admin/3184239974/:lang(es|en)?",
     name: "AdminCelebrities",
     component: AdminCelebrities,
     props: (route) => ({
@@ -65,19 +61,33 @@ const router = createRouter({
   },
 });
 
-// Guardia global para agregar `lang` como query param
+// Guardia global para asegurarnos de que siempre haya un idioma en el path
 router.beforeEach((to, from, next) => {
-  const selectedLang =
+  const supportedLangs = ["es", "en"];
+  const defaultLang =
     localStorage.getItem("lang") ||
     (navigator.language.includes("es") ? "es" : "en");
 
-  if (!to.query.lang) {
-    next({
-      ...to,
-      query: { ...to.query, lang: selectedLang },
-    });
-  } else {
+  const lang = to.params.lang;
+
+  // Si el idioma ya es válido y está en el lugar correcto, continuamos
+  if (lang && supportedLangs.includes(lang)) {
     next();
+  } else {
+    // Determinamos la nueva ruta sin el idioma actual
+    const pathWithoutLang = to.path.replace(/\/(es|en)$/, ""); // Elimina el idioma al final si ya existe
+    const newPath = `${pathWithoutLang}/${defaultLang}`.replace(/\/\//g, "/");
+
+    // Redirigimos solo si la nueva ruta es diferente a la actual
+    if (to.fullPath === newPath) {
+      next();
+    } else {
+      next({
+        path: newPath,
+        query: to.query,
+        replace: true,
+      });
+    }
   }
 });
 
