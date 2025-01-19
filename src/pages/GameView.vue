@@ -9,9 +9,17 @@
       />
     </a>
   </div>
+  <em class="text-xs block text-center text-gray-400 italic mb-4">
+    {{
+      lang === "es"
+        ? "Las pistas se crean utilizando el idioma seleccionado en el momento de su generación."
+        : "Clues are created using the language selected at the time of their generation."
+    }}
+  </em>
   <!-- Ícono de pregunta arriba a la derecha -->
   <!-- Íconos arriba a la derecha -->
   <div
+    style="z-index: 100"
     class="fixed top-4 right-4 flex items-center space-x-3 bg-neutral-700 rounded-xl p-2"
   >
     <!-- Ícono de pregunta -->
@@ -69,7 +77,7 @@
       style="overflow-y: scroll"
       class="dark text-white p-4 bg-neutral-800 rounded-lg w-full sm:w-[600px] sm:min-h-[70vh] sm:max-h-[70vh] mx-auto flex flex-col"
     >
-      <h2 class="font-montserrat text-2xl font-bold mb-4 text-center">
+      <h2 class="font-montserrat text-2xl font-bold text-center mb-4">
         {{ t("gameTitle") }}
       </h2>
 
@@ -169,15 +177,30 @@
 
         <!-- Controles: Adivinar / Saltar -->
         <div v-if="!localFinished && revealedCluesCount < allClues.length">
-          <div>
+          <div class="relative">
             <input
               type="text"
               v-model="userGuess"
-              class="font-montserrat text-black p-2 rounded mr-2 transition hover:scale-95 w-full"
+              class="font-montserrat text-black p-2 rounded w-full"
               :placeholder="t('placeholderGuess')"
               @keyup.enter="onGuess"
             />
+            <!-- Sugerencias -->
+            <ul
+              v-if="suggestions?.length"
+              class="absolute bg-neutral-700 text-white w-full border border-gray-300 rounded mt-1 z-50"
+            >
+              <li
+                v-for="(sugg, idx) in suggestions"
+                :key="idx"
+                class="px-2 py-1 hover:bg-neutral-600 cursor-pointer"
+                @click="selectSuggestion(sugg)"
+              >
+                {{ sugg }}
+              </li>
+            </ul>
           </div>
+
           <div class="mt-3">
             <!-- centrado -->
             <button
@@ -213,15 +236,30 @@
         <div
           v-else-if="!localFinished && revealedCluesCount === allClues.length"
         >
-          <div>
+          <div class="relative">
             <input
               type="text"
               v-model="userGuess"
-              class="font-montserrat text-black p-2 rounded mr-2 transition hover:scale-95 w-full"
+              class="font-montserrat text-black p-2 rounded w-full"
               :placeholder="t('placeholderGuess')"
               @keyup.enter="onGuess"
             />
+            <!-- Sugerencias -->
+            <ul
+              v-if="suggestions?.length"
+              class="absolute bg-neutral-700 text-white w-full border border-gray-300 rounded mt-1 z-50"
+            >
+              <li
+                v-for="(sugg, idx) in suggestions"
+                :key="idx"
+                class="px-2 py-1 hover:bg-neutral-600 cursor-pointer"
+                @click="selectSuggestion(sugg)"
+              >
+                {{ sugg }}
+              </li>
+            </ul>
           </div>
+
           <button
             @click="onGuess"
             :disabled="isGuessing"
@@ -389,12 +427,13 @@
 
 <script>
 import { ref, computed, onMounted, watch } from "vue";
-import { getOrCreateDailyGame, updateDailyGame } from "@/services/gameService";
+import { getCelebrityOfToday } from "@/services/pickCelebrityService";
+import { collection, getDocs } from "firebase/firestore";
+import { db } from "@/firebase/firebase";
 import i18n from "@/lang.js"; // <-- importamos el objeto de traducciones
 
 const today = new Date();
 const offsetDate = new Date(today.getTime());
-const todayStr = offsetDate.toISOString().slice(0, 10);
 
 export default {
   name: "GameView",
@@ -416,6 +455,8 @@ export default {
 
     const revealedCluesCount = ref(1);
     const userGuess = ref("");
+    const suggestions = ref([]); // array de strings para mostrar
+
     const result = ref(null); // true, false, o null
     const localFinished = ref(false);
     const attempts = ref(0);
@@ -431,6 +472,37 @@ export default {
       maxStreak: 0,
       lastPlayed: null,
     });
+
+    // Cargar/guardar localStorage
+    function loadFromLocalStorage() {
+      const stored = localStorage.getItem("celebGameProgress");
+      if (stored) {
+        const data = JSON.parse(stored);
+        gameState.value = data;
+        localFinished.value = data.finished || false;
+        revealedCluesCount.value = data.revealedCluesCount || 1;
+        attempts.value = data.attempts || 0;
+        result.value = data.result ?? null;
+      }
+    }
+    // Al seleccionar una sugerencia:
+    function selectSuggestion(name) {
+      userGuess.value = name;
+      suggestions.value = [];
+    }
+    function saveToLocalStorage() {
+      if (!gameState.value) return;
+      localStorage.setItem(
+        "celebGameProgress",
+        JSON.stringify({
+          ...gameState.value,
+          finished: localFinished.value,
+          revealedCluesCount: revealedCluesCount.value,
+          attempts: attempts.value,
+          result: result.value,
+        })
+      );
+    }
 
     // Función auxiliar para traducir
     const t = (key, param = null) => {
@@ -450,7 +522,6 @@ export default {
 
     const fetchCelebrityImage = async (celebrityName) => {
       const apiUrl = "https://en.wikipedia.org/w/api.php";
-      const query = encodeURIComponent(celebrityName);
       const params = new URLSearchParams({
         action: "query",
         titles: celebrityName,
@@ -498,6 +569,14 @@ export default {
       { immediate: true }
     );
 
+    watch(
+      () => userGuess.value,
+      async (newVal) => {
+        // cada vez que cambie userGuess, cargamos sugerencias
+        await loadSuggestions();
+      }
+    );
+
     watch([imageUrl, revealedCluesCount], () => {
       const gameScreen = document.getElementById("GameScreen");
 
@@ -521,9 +600,10 @@ export default {
             const imageElement = document.querySelector("#celebrityImage"); // Ajusta el selector si es necesario
 
             if (
-              (!atBottom && elapsedTime < maxDuration) ||
-              (!imageUrl && revealedCluesCount.value > 5) ||
-              !imageElement?.complete
+              !atBottom || // No está en el fondo
+              !imageUrl || // No hay imageUrl
+              (revealedCluesCount.value > 5 && // Si los clues revelados son más de 5
+                (!imageElement || !imageElement.complete)) // Se aplica para el elemento de la imagen
             ) {
               gameScreen.scrollTo({
                 top: gameScreen.scrollHeight,
@@ -533,10 +613,12 @@ export default {
               // Esperar 100ms y volver a comprobar
               setTimeout(scrollToBottom, 100);
             }
+
             if (
-              (!atBottom && elapsedTime < maxDuration) ||
-              (!imageUrl && revealedCluesCount.value > 5) ||
-              !imageElement?.complete
+              !generalAtBottom || // No está en el fondo
+              !imageUrl || // No hay imageUrl
+              (revealedCluesCount.value > 5 && // Si los clues revelados son más de 5
+                (!imageElement || !imageElement.complete)) // Se aplica para el elemento de la imagen
             ) {
               // bajar tambien la pagina en general
               window.scrollTo({
@@ -569,39 +651,65 @@ export default {
     const closeStatsModal = () => (showStatsModal.value = false);
 
     onMounted(async () => {
+      // 1) Carga estadísticas desde localStorage (si usas stats modal)
       loadStats();
-      const userIP = await getPublicIP();
-      USER_PLAYER_ID.value = `USER_${userIP}`;
-      const data = await getOrCreateDailyGame(
-        USER_PLAYER_ID.value,
-        todayStr,
-        props.lang
-      );
 
-      gameState.value = data;
-      cluesColors.value = Array(allClues.value.length).fill("border-amber-300");
-      attempts.value = data.attempts || 0;
+      // 2) Intenta cargar el progreso local del juego (si existe)
+      loadFromLocalStorage();
 
-      // Si no ha terminado, restauramos "revealedCluesCount" si existe
-      if (!data.finished && data.revealedCluesCount !== undefined) {
-        revealedCluesCount.value = data.revealedCluesCount;
+      if (!gameState.value) {
+        // 3) Si no había progreso, consultamos la celebridad del día en dailySelection
+        const todayCeleb = await getCelebrityOfToday();
+        if (!todayCeleb) {
+          console.warn("No hay celebridad elegida para hoy en dailySelection");
+          return; // o manejar de otra forma
+        }
+
+        // 4) Creamos un estado de juego inicial
+        gameState.value = {
+          celebrityName: todayCeleb.name,
+          audioUrl: todayCeleb.audioUrl,
+          // Asumiendo que en dailySelection guardaste un array de clues,
+          // o si no, usas un default:
+          clues:
+            props.lang === "es" ? todayCeleb.clues_es : todayCeleb.clues_en,
+          finished: false,
+          guessedCorrectly: false,
+          revealedCluesCount: 1,
+          attempts: 0,
+        };
+        // Ajustamos refs locales
+        localFinished.value = false;
+        revealedCluesCount.value = 1;
+        attempts.value = 0;
+        result.value = null;
+
+        // 5) Guardar el nuevo estado en localStorage
+        saveToLocalStorage();
+      } else {
+        // 6) Si sí había progreso local, refleja en las refs
+        localFinished.value = gameState.value.finished || false;
+        revealedCluesCount.value = gameState.value.revealedCluesCount || 1;
+        attempts.value = gameState.value.attempts || 0;
+        result.value = gameState.value.result ?? null;
       }
 
-      // Si está terminado, ajustamos estado
-      if (data.finished) {
+      // 7) Prepara los estilos de color para las pistas
+      cluesColors.value = Array(allClues.value.length).fill("border-amber-300");
+
+      // Si el juego ya está terminado, colorea según acierto/fallo
+      if (localFinished.value) {
         revealedCluesCount.value = allClues.value.length;
-        localFinished.value = true;
-        if (data.guessedCorrectly) {
-          result.value = true;
+        if (result.value === true) {
           cluesColors.value = cluesColors.value.map(() => "border-green-500");
         } else {
-          result.value = false;
           cluesColors.value = cluesColors.value.map(() => "border-red-500");
         }
       }
 
+      // 8) Tras un breve delay, obtenemos la imagen de la celebridad (si se requiere)
       setTimeout(() => {
-        if (gameState.value.celebrityName) {
+        if (gameState.value?.celebrityName) {
           fetchCelebrityImage(gameState.value.celebrityName);
         }
       }, 500);
@@ -621,7 +729,7 @@ export default {
       }));
       const audioClue = {
         type: "audio",
-        content: gameState.value.celebrityAudio,
+        content: gameState.value.audioUrl,
       };
       const imageClue = {
         type: "image",
@@ -634,25 +742,6 @@ export default {
     const visibleClues = computed(() => {
       return allClues.value.slice(0, revealedCluesCount.value);
     });
-
-    // Actualizar attempts en Firestore
-    async function updateAttemptsInFirestore() {
-      attempts.value++;
-      await updateDailyGame(USER_PLAYER_ID.value, todayStr, {
-        attempts: attempts.value,
-      });
-    }
-
-    async function getPublicIP() {
-      try {
-        const response = await fetch("https://api.ipify.org?format=json");
-        const data = await response.json();
-        return data.ip;
-      } catch (error) {
-        console.error("Error al obtener la IP pública: ", error);
-        return null;
-      }
-    }
 
     function loadStats() {
       const stored = localStorage.getItem("celebStats");
@@ -715,115 +804,109 @@ export default {
     }
 
     // Adivinar
+    // onGuess => sin Firestore, solo local
     async function onGuess() {
-      if (localFinished.value || isGuessing.value) return;
-      if (!userGuess.value.trim()) {
-        return;
-      }
+      if (!gameState.value || localFinished.value) return;
+      if (!userGuess.value.trim()) return;
 
-      isGuessing.value = true; // Bloquea nuevas ejecuciones
-      try {
-        await updateAttemptsInFirestore();
+      attempts.value++;
+      // check if correct
+      const guessNormalized = userGuess.value.trim().toLowerCase();
+      const realNameNormalized = gameState.value.celebrityName
+        .trim()
+        .toLowerCase();
+      const correct =
+        guessNormalized.includes(realNameNormalized) ||
+        realNameNormalized.includes(guessNormalized);
 
-        const guessNormalized = userGuess.value.trim().toLowerCase();
-        const realNameNormalized = gameState.value.celebrityName
-          .trim()
-          .toLowerCase();
+      if (correct) {
+        result.value = true;
+        localFinished.value = true;
+        // p.ej. revealedCluesCount = allClues.length
+        revealedCluesCount.value = gameState.value.clues.length + 2; // Ej. 6
 
-        const correct =
-          guessNormalized.includes(realNameNormalized) ||
-          realNameNormalized.includes(guessNormalized);
-
-        if (correct) {
-          result.value = true;
-          localFinished.value = true;
-          cluesColors.value = cluesColors.value.map(() => "border-green-500");
-
-          // Actualizar stats => attempt = revealedCluesCount
-          // (ej. si adivinó en 3er pista => revealedCluesCount=3)
-          const tryNumber = revealedCluesCount.value; // 1..6
-          if (tryNumber > 6) {
-            // si por lógica pasa de 6, forzamos a 6
-            updateStatsOnWin(6);
-          } else {
-            updateStatsOnWin(tryNumber);
-          }
-
-          revealedCluesCount.value = allClues.value.length;
-          userGuess.value = "";
-
-          await updateDailyGame(USER_PLAYER_ID.value, todayStr, {
-            finished: true,
-            guessedCorrectly: true,
-            attempts: attempts.value,
-          });
-          gameState.value.finished = true;
+        updateStatsOnWin(attempts.value);
+      } else {
+        // falló
+        if (revealedCluesCount.value < gameState.value.clues.length + 2) {
+          revealedCluesCount.value++;
         } else {
-          const currentIndex = revealedCluesCount.value - 1;
-          if (currentIndex >= 0 && currentIndex < cluesColors.value.length) {
-            cluesColors.value[currentIndex] = "border-red-500";
-          }
-
-          if (revealedCluesCount.value < allClues.value.length) {
-            revealedCluesCount.value++;
-            await updateDailyGame(USER_PLAYER_ID.value, todayStr, {
-              revealedCluesCount: revealedCluesCount.value,
-              attempts: attempts.value,
-            });
-          } else {
-            result.value = false;
-            localFinished.value = true;
-
-            await updateDailyGame(USER_PLAYER_ID.value, todayStr, {
-              finished: true,
-              guessedCorrectly: false,
-              attempts: attempts.value,
-            });
-            gameState.value.finished = true;
-
-            updateStatsOnLose();
-          }
-          userGuess.value = "";
+          // se acabó
+          result.value = false;
+          localFinished.value = true;
         }
-      } catch (error) {
-        console.error("Error en la función onGuess:", error);
-      } finally {
-        isGuessing.value = false; // Permite nuevas ejecuciones
+        updateStatsOnLose();
       }
+      saveToLocalStorage();
+      userGuess.value = "";
+    }
+
+    // onSkip => incrementa revealedCluesCount y guarda local
+    async function onSkip() {
+      if (!gameState.value || localFinished.value) return;
+      attempts.value++;
+      if (revealedCluesCount.value < gameState.value.clues.length + 2) {
+        revealedCluesCount.value++;
+      } else {
+        localFinished.value = true;
+        result.value = false;
+      }
+      saveToLocalStorage();
     }
 
     // Saltar
-    async function onSkip() {
+    function onSkip() {
+      // Si ya terminó el juego, no hacer nada
       if (localFinished.value) return;
 
-      await updateAttemptsInFirestore(); // incrementa attempts
+      // Incrementamos intentos
+      attempts.value++;
 
+      // Marcar pista actual como "saltada"
       const currentIndex = revealedCluesCount.value - 1;
       if (currentIndex >= 0 && currentIndex < cluesColors.value.length) {
         cluesColors.value[currentIndex] = "border-gray-500";
       }
 
-      // Desbloquear siguiente pista
+      // Desbloqueamos la siguiente pista, si queda
       if (revealedCluesCount.value < allClues.value.length) {
         revealedCluesCount.value++;
-        await updateDailyGame(USER_PLAYER_ID.value, todayStr, {
-          revealedCluesCount: revealedCluesCount.value,
-          attempts: attempts.value,
-        });
       } else {
-        // Si ya era la última => se queda sin pistas
+        // Ya no hay más pistas => finaliza el juego
         result.value = false;
         localFinished.value = true;
-        await updateDailyGame(USER_PLAYER_ID.value, todayStr, {
-          finished: true,
-          guessedCorrectly: false,
-          attempts: attempts.value,
-          revealedCluesCount: revealedCluesCount.value,
-        });
-        gameState.value.finished = true;
-        // Stats => No adivinó => X
+        // Lógica de stats => se cuenta como no adivinó
         updateStatsOnLose();
       }
+
+      // Guardar progreso en localStorage
+      saveToLocalStorage();
+    }
+
+    // Método para cargar sugerencias (filtra por name)
+    async function loadSuggestions() {
+      const term = userGuess.value.trim().toLowerCase();
+      if (!term) {
+        suggestions.value = [];
+        return;
+      }
+
+      // Por simplicidad, asumiendo un query "where name >= term" or similar
+      // O si tienes un índice para búsqueda.
+      // A falta de un "startAt" / "endAt", haremos un filtrado manual en el cliente.
+
+      // Traemos todos (o muchos) y luego filtramos. O implementa un “startAt” / “endAt” si usas “orderBy”.
+      const snapshot = await getDocs(collection(db, "celebrities"));
+      let tempList = [];
+      snapshot.forEach((docSnap) => {
+        const data = docSnap.data();
+        if (data.name.toLowerCase().includes(term)) {
+          tempList.push(data.name);
+        }
+      });
+
+      // Tomar solo las 6 coincidencias
+      suggestions.value = tempList.slice(0, 6);
     }
 
     // Tiempo hasta medianoche local
@@ -874,6 +957,8 @@ export default {
       saveStats,
       getWinPercentage,
       getDistributionWidth,
+      suggestions,
+      selectSuggestion,
     };
   },
 };

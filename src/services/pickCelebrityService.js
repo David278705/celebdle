@@ -1,31 +1,26 @@
 // src/services/pickCelebrityService.js
-
-import { collection, getDocs } from "firebase/firestore";
+import { collection, getDocs, query, where } from "firebase/firestore";
 import { db } from "@/firebase/firebase";
 
-/**
- * pickCelebrityOfTheDay
- * ---------------------
- * Obtiene todas las celebridades de la colección "celebrities"
- * en Firestore y devuelve 1 celebridad elegida aleatoriamente.
- *
- * @returns {Object} Un objeto con { id, name, imageUrl, audioUrl, .... }
- */
-export async function pickCelebrityOfTheDay() {
-  // 1. Traer todos los documentos de la colección "celebrities"
-  const snapshot = await getDocs(collection(db, "celebrities"));
-  const celebArray = snapshot.docs.map((doc) => ({
-    id: doc.id,
-    ...doc.data(),
-  }));
+// Retorna la celebridad del día (si la hay)
+export async function getCelebrityOfToday() {
+  const todayStr = new Date().toISOString().slice(0, 10); // "YYYY-MM-DD"
+  const dailyColl = collection(db, "dailySelection");
+  const q = query(dailyColl, where("date", "==", todayStr));
+  const snapshot = await getDocs(q);
 
-  // 2. Elige una celebridad aleatoria de ese array
-  if (celebArray.length === 0) {
-    throw new Error("No hay celebridades en la colección 'celebrities'.");
+  if (!snapshot.empty) {
+    // Suponiendo que solo hay un doc para hoy
+    const docSnap = snapshot.docs[0];
+    return {
+      celebId: docSnap.data().celebId,
+      name: docSnap.data().name,
+      audioUrl: docSnap.data().audioUrl, // si lo guardaste también
+      clues_es: docSnap.data().clues_es,
+      clues_en: docSnap.data().clues_en,
+    };
+  } else {
+    // Si no hay celebridad elegida para hoy, podrías devolver null o un error
+    return null;
   }
-  const randomIndex = Math.floor(Math.random() * celebArray.length);
-  const chosen = celebArray[randomIndex];
-
-  // 3. Devuelve la celebridad seleccionada
-  return chosen;
 }
