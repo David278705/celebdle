@@ -1,6 +1,7 @@
 <!-- src/pages/LandingPage.vue -->
 <template>
   <!-- Usamos la clase 'dark' en el contenedor raíz para modo oscuro -->
+
   <div
     class="dark text-white flex flex-col items-center justify-center cursor-default"
   >
@@ -42,12 +43,15 @@
       </a>
     </p>
   </div>
+  <GoogleAd class="mt-4" />
+  <GoogleAd class="mt-4" />
 </template>
 
 <script>
 import { useRouter } from "vue-router";
 import { ref } from "vue";
 import i18n from "@/lang.js"; // Importamos tu archivo de traducciones
+import GoogleAd from "../components/GoogleAd.vue";
 
 export default {
   name: "LandingPage",
@@ -58,6 +62,10 @@ export default {
       default: "es",
     },
   },
+  components: {
+    GoogleAd,
+  },
+
   setup(props) {
     const router = useRouter();
 

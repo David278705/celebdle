@@ -1,5 +1,8 @@
 <template>
   <!-- Logo superior -->
+
+  <GoogleAd class="mt-4 w-full" />
+
   <div class="flex justify-center">
     <a href="/">
       <img
@@ -74,8 +77,7 @@
     <!-- Tarjeta principal con tamaño fijo -->
     <div
       id="GameScreen"
-      style="overflow-y: scroll"
-      class="dark text-white p-4 bg-neutral-800 rounded-lg w-full sm:w-[600px] sm:min-h-[70vh] sm:max-h-[70vh] mx-auto flex flex-col"
+      class="dark text-white p-4 bg-neutral-800 rounded-lg w-full sm:w-[600px] mx-auto flex flex-col"
     >
       <h2 class="font-montserrat text-2xl font-bold text-center mb-4">
         {{ t("gameTitle") }}
@@ -346,6 +348,8 @@
     </div>
   </transition>
 
+  <GoogleAd class="mt-4 w-full" />
+
   <!-- Statistics Modal -->
   <transition name="fade">
     <div
@@ -431,6 +435,7 @@ import { getCelebrityOfToday } from "@/services/pickCelebrityService";
 import { collection, getDocs } from "firebase/firestore";
 import { db } from "@/firebase/firebase";
 import i18n from "@/lang.js"; // <-- importamos el objeto de traducciones
+import GoogleAd from "../components/GoogleAd.vue";
 
 const today = new Date();
 const offsetDate = new Date(today.getTime());
@@ -444,6 +449,10 @@ export default {
       default: "es",
     },
   },
+  components: {
+    GoogleAd,
+  },
+
   setup(props) {
     const imageUrl = ref("");
 
