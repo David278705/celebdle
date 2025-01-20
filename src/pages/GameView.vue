@@ -478,6 +478,18 @@ export default {
       const stored = localStorage.getItem("celebGameProgress");
       if (stored) {
         const data = JSON.parse(stored);
+
+        // Obtener la fecha de hoy
+        const todayStr = new Date().toISOString().slice(0, 10);
+
+        // Si la fecha guardada no coincide con hoy, lo descartamos
+        if (data.savedDate !== todayStr) {
+          // Borramos
+          localStorage.removeItem("celebGameProgress");
+          return; // Salimos sin asignar nada a gameState
+        }
+
+        // Caso contrario, la partida corresponde al día actual => la restauramos
         gameState.value = data;
         localFinished.value = data.finished || false;
         revealedCluesCount.value = data.revealedCluesCount || 1;
@@ -485,6 +497,7 @@ export default {
         result.value = data.result ?? null;
       }
     }
+
     // Al seleccionar una sugerencia:
     function selectSuggestion(name) {
       userGuess.value = name;
@@ -658,6 +671,8 @@ export default {
       loadFromLocalStorage();
 
       if (!gameState.value) {
+        const todayStr = new Date().toISOString().slice(0, 10); // "YYYY-MM-DD"
+
         // 3) Si no había progreso, consultamos la celebridad del día en dailySelection
         const todayCeleb = await getCelebrityOfToday();
         if (!todayCeleb) {
@@ -677,6 +692,8 @@ export default {
           guessedCorrectly: false,
           revealedCluesCount: 1,
           attempts: 0,
+
+          savedDate: todayStr,
         };
         // Ajustamos refs locales
         localFinished.value = false;
