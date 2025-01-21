@@ -19,6 +19,7 @@ export default {
     statsTitle: "ESTADÍSTICAS",
     statsFoundLabel: "Encontrado",
     statsCurrentStreakLabel: "Racha actual",
+    seeLastGame: "Ver el juego anterior",
     statsMaxStreakLabel: "Racha máxima",
     statsCloseButton: "Cerrar",
     // Si deseas traducir la "X" por otra cosa, o dejarla igual
@@ -83,6 +84,7 @@ export default {
     landingPlayButton: "Start playing!",
     poweredBy: "powered by",
     statsTitle: "STATISTICS",
+    seeLastGame: "See last game",
     statsFoundLabel: "Found",
     statsCurrentStreakLabel: "Current Streak",
     statsMaxStreakLabel: "Max Streak",

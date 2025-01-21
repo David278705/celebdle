@@ -28,13 +28,22 @@
       >
         {{ t("landingPlayButton") }}
       </button>
-      <button
-        v-else
-        disabled
-        class="font-montserrat transition bg-amber-200 px-6 py-3 text-black rounded-lg"
-      >
-        {{ timer }}
-      </button>
+      <!-- distribución vertical -->
+      <div class="flex flex-col items-center space-x-2" v-else>
+        <button
+          disabled
+          class="font-montserrat transition bg-amber-200 px-6 py-3 text-black rounded-lg"
+        >
+          {{ timer }}
+        </button>
+
+        <a
+          class="text-amber-300 mt-4 transition hover:text-amber-400 hover:scale-110"
+          href="/#/play"
+        >
+          {{ t("seeLastGame") }}</a
+        >
+      </div>
     </div>
 
     <p class="flex items-center font-montserrat text-neutral-400 mt-20">
