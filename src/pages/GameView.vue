@@ -303,7 +303,7 @@
         <!-- Al final, el tiempo faltante -->
         <div v-if="localFinished" class="mt-4 text-center">
           <p class="font-montserrat text-green-300">
-            {{ t("nextCelebrityTimer", timeLeft()) }}
+            {{ t("nextCelebrityTimer", timer) }}
           </p>
         </div>
       </div>
@@ -469,6 +469,7 @@ export default {
     const cluesColors = ref([]);
     const isGuessing = ref(false);
 
+    const timer = ref("00:00:00");
     // Stats en localStorage
     const stats = ref({
       played: 0,
@@ -478,6 +479,8 @@ export default {
       maxStreak: 0,
       lastPlayed: null,
     });
+
+    let intervalId = null; // Referencia al intervalo para limpiar al desmontar
 
     // Cargar/guardar localStorage
     async function loadFromLocalStorage() {
@@ -547,6 +550,27 @@ export default {
       }
       // O bien es un string
       return translations[key] || key;
+    };
+
+    const calculateTimeLeft = () => {
+      const now = new Date();
+      const midnight = new Date();
+      midnight.setHours(24, 0, 0, 0); // Próxima medianoche
+
+      const msLeft = midnight - now;
+      if (msLeft <= 0) {
+        window.location.reload();
+        clearInterval(intervalId);
+        return;
+      }
+
+      const padWithZeros = (number) => String(number).padStart(2, "0"); // Función para agregar ceros a la izquierda
+
+      const hours = padWithZeros(Math.floor(msLeft / 3600000));
+      const minutes = padWithZeros(Math.floor((msLeft % 3600000) / 60000));
+      const seconds = padWithZeros(Math.floor((msLeft % 60000) / 1000));
+
+      timer.value = `${hours}:${minutes}:${seconds}`; // Formato HH:MM:SS
     };
 
     const fetchCelebrityImage = async (celebrityName) => {
@@ -744,6 +768,9 @@ export default {
 
         if (gameState.value.finished) {
           document.getElementById("StatsButton").click();
+
+          calculateTimeLeft(); // Calcular el tiempo inicial
+          intervalId = setInterval(calculateTimeLeft, 1000); // Actualizar cada segundo
         }
       }
 
@@ -963,18 +990,6 @@ export default {
     }
 
     // Tiempo hasta medianoche local
-    function timeLeft() {
-      const now = new Date();
-      const tomorrowMidnight = new Date(now);
-      tomorrowMidnight.setDate(now.getDate() + 1);
-      tomorrowMidnight.setHours(0, 0, 0, 0);
-
-      const msLeft = tomorrowMidnight - now;
-      if (msLeft <= 0) return "0 horas";
-      const hours = Math.floor(msLeft / 3600000);
-      const minutes = Math.floor((msLeft % 3600000) / 60000);
-      return `${hours}h ${minutes}m`;
-    }
 
     return {
       showRulesModal,
@@ -993,7 +1008,7 @@ export default {
       // Methods
       onGuess,
       onSkip,
-      timeLeft,
+      timer,
       openRulesModal,
       closeRulesModal,
       imageUrl,
