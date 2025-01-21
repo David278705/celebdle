@@ -4,7 +4,13 @@ import { db } from "@/firebase/firebase";
 
 // Retorna la celebridad del día (si la hay)
 export async function getCelebrityOfToday() {
-  const todayStr = new Date().toISOString().slice(0, 10); // "YYYY-MM-DD"
+  const now = new Date();
+  const todayStr =
+    now.getFullYear() +
+    "-" +
+    String(now.getMonth() + 1).padStart(2, "0") +
+    "-" +
+    String(now.getDate()).padStart(2, "0");
   const dailyColl = collection(db, "dailySelection");
   const q = query(dailyColl, where("date", "==", todayStr));
   const snapshot = await getDocs(q);

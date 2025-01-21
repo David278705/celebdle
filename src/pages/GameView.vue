@@ -1,7 +1,7 @@
 <template>
   <!-- Logo superior -->
 
-  <GoogleAd class="mt-4 w-full" />
+  <!-- <GoogleAd class="mt-4 w-full" /> -->
 
   <div class="flex justify-center">
     <a href="/">
@@ -52,6 +52,7 @@
 
     <!-- Ícono de estadísticas -->
     <button
+      id="StatsButton"
       class="text-amber-300 hover:text-amber-300 transition text-2xl p-2 rounded-full hover:scale-110 hover:text-white bg-neutral-800"
       @click="openStatsModal"
       aria-label="Mostrar estadísticas"
@@ -348,7 +349,7 @@
     </div>
   </transition>
 
-  <GoogleAd class="mt-4 w-full" />
+  <!-- <GoogleAd class="mt-4 w-full" /> -->
 
   <!-- Statistics Modal -->
   <transition name="fade">
@@ -437,9 +438,6 @@ import { db } from "@/firebase/firebase";
 import i18n from "@/lang.js"; // <-- importamos el objeto de traducciones
 import GoogleAd from "../components/GoogleAd.vue";
 
-const today = new Date();
-const offsetDate = new Date(today.getTime());
-
 export default {
   name: "GameView",
   // Recibimos el idioma como prop, por defecto "es"
@@ -460,7 +458,6 @@ export default {
     const showStatsModal = ref(false);
 
     const gameState = ref(null);
-    const USER_PLAYER_ID = ref(null);
 
     const revealedCluesCount = ref(1);
     const userGuess = ref("");
@@ -483,19 +480,24 @@ export default {
     });
 
     // Cargar/guardar localStorage
-    function loadFromLocalStorage() {
+    async function loadFromLocalStorage() {
       const stored = localStorage.getItem("celebGameProgress");
       if (stored) {
         const data = JSON.parse(stored);
 
         // Obtener la fecha de hoy
-        const todayStr = new Date().toISOString().slice(0, 10);
-
+        const now = new Date();
+        const todayStr =
+          now.getFullYear() +
+          "-" +
+          String(now.getMonth() + 1).padStart(2, "0") +
+          "-" +
+          String(now.getDate()).padStart(2, "0");
         // Si la fecha guardada no coincide con hoy, lo descartamos
         if (data.savedDate !== todayStr) {
           // Borramos
           localStorage.removeItem("celebGameProgress");
-          return; // Salimos sin asignar nada a gameState
+          return null; // Salimos sin asignar nada a gameState
         }
 
         // Caso contrario, la partida corresponde al día actual => la restauramos
@@ -504,13 +506,18 @@ export default {
         revealedCluesCount.value = data.revealedCluesCount || 1;
         attempts.value = data.attempts || 0;
         result.value = data.result ?? null;
+
+        return data;
       }
+      return null;
     }
 
     // Al seleccionar una sugerencia:
     function selectSuggestion(name) {
       userGuess.value = name;
-      suggestions.value = [];
+      setTimeout(() => {
+        suggestions.value = [];
+      }, 200);
     }
     function saveToLocalStorage() {
       if (!gameState.value) return;
@@ -591,11 +598,23 @@ export default {
       { immediate: true }
     );
 
+    // ...
     watch(
       () => userGuess.value,
-      async (newVal) => {
-        // cada vez que cambie userGuess, cargamos sugerencias
-        await loadSuggestions();
+      async (newVal, oldVal) => {
+        const term = newVal.trim().toLowerCase();
+
+        // Si userGuess es vacío => no cargamos nada
+        if (!term) {
+          suggestions.value = [];
+          return;
+        }
+
+        // Si la diferencia se debe a que acabamos de hacer selectSuggestion()
+        // y ya vaciamos 'suggestions', podemos chequear:
+        if (!oldVal || oldVal.toLowerCase() !== term) {
+          await loadSuggestions();
+        }
       }
     );
 
@@ -609,7 +628,6 @@ export default {
           const maxDuration = 2000; // 3 segundos en milisegundos
 
           const scrollToBottom = () => {
-            const elapsedTime = Date.now() - startTime;
             const atBottom =
               Math.abs(
                 gameScreen.scrollHeight -
@@ -677,18 +695,23 @@ export default {
       loadStats();
 
       // 2) Intenta cargar el progreso local del juego (si existe)
-      loadFromLocalStorage();
+      const response = await loadFromLocalStorage();
 
-      if (!gameState.value) {
-        const todayStr = new Date().toISOString().slice(0, 10); // "YYYY-MM-DD"
+      if (!response) {
+        const now = new Date();
+        const todayStr =
+          now.getFullYear() +
+          "-" +
+          String(now.getMonth() + 1).padStart(2, "0") +
+          "-" +
+          String(now.getDate()).padStart(2, "0");
 
         // 3) Si no había progreso, consultamos la celebridad del día en dailySelection
         const todayCeleb = await getCelebrityOfToday();
         if (!todayCeleb) {
-          console.warn("No hay celebridad elegida para hoy en dailySelection");
+          console.warn("There is no celebrity for today.");
           return; // o manejar de otra forma
         }
-
         // 4) Creamos un estado de juego inicial
         gameState.value = {
           celebrityName: todayCeleb.name,
@@ -718,6 +741,10 @@ export default {
         revealedCluesCount.value = gameState.value.revealedCluesCount || 1;
         attempts.value = gameState.value.attempts || 0;
         result.value = gameState.value.result ?? null;
+
+        if (gameState.value.finished) {
+          document.getElementById("StatsButton").click();
+        }
       }
 
       // 7) Prepara los estilos de color para las pistas

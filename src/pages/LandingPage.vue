@@ -43,8 +43,8 @@
       </a>
     </p>
   </div>
-  <GoogleAd class="mt-4" />
-  <GoogleAd class="mt-4" />
+  <!-- <GoogleAd class="mt-4" />
+  <GoogleAd class="mt-4" /> -->
 </template>
 
 <script>
