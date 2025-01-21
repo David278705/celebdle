@@ -906,6 +906,11 @@ export default {
         revealedCluesCount.value = gameState.value.clues.length + 2; // Ej. 6
 
         updateStatsOnWin(attempts.value);
+
+        if (!intervalId) {
+          calculateTimeLeft(); // Calcular el tiempo inicial
+          intervalId = setInterval(calculateTimeLeft, 1000); // Actualizar cada segundo
+        }
       } else {
         // falló
         if (revealedCluesCount.value < gameState.value.clues.length + 2) {
@@ -914,6 +919,10 @@ export default {
           // se acabó
           result.value = false;
           localFinished.value = true;
+          if (!intervalId) {
+            calculateTimeLeft(); // Calcular el tiempo inicial
+            intervalId = setInterval(calculateTimeLeft, 1000); // Actualizar cada segundo
+          }
         }
         updateStatsOnLose();
       }

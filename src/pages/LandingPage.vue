@@ -118,7 +118,7 @@ export default {
         "-" +
         String(now.getDate()).padStart(2, "0");
       finishedToday.value =
-        JSON.parse(storedData).finished &&
+        JSON.parse(storedData)?.finished &&
         JSON.parse(storedData).savedDate === todayStr;
       if (finishedToday.value) {
         calculateTimeLeft(); // Calcular el tiempo inicial
