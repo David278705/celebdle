@@ -520,7 +520,7 @@ export default {
       userGuess.value = name;
       setTimeout(() => {
         suggestions.value = [];
-      }, 200);
+      }, 400);
     }
     function saveToLocalStorage() {
       if (!gameState.value) return;
@@ -923,8 +923,8 @@ export default {
             calculateTimeLeft(); // Calcular el tiempo inicial
             intervalId = setInterval(calculateTimeLeft, 1000); // Actualizar cada segundo
           }
+          updateStatsOnLose();
         }
-        updateStatsOnLose();
       }
       saveToLocalStorage();
       userGuess.value = "";
