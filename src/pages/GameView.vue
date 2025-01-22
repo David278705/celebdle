@@ -27,6 +27,7 @@
     <button
       class="text-amber-300 hover:text-amber-300 transition text-2xl p-2 rounded-full hover:scale-110 hover:text-white bg-neutral-800"
       @click="openRulesModal"
+      id="helpButton"
       aria-label="Mostrar reglas"
     >
       <svg
@@ -785,6 +786,11 @@ export default {
           fetchCelebrityImage(gameState.value.celebrityName);
         }
       }, 500);
+
+      if (!localStorage.getItem("alreadyPlayed")) {
+        document.getElementById("helpButton").click();
+        localStorage.setItem("alreadyPlayed", true);
+      }
     });
 
     /**
