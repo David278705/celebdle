@@ -56,6 +56,8 @@
         />
       </a>
     </p>
+
+    <GoogleAd class="mt-4 w-full" />
   </div>
 </template>
 

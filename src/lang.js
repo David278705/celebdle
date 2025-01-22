@@ -27,7 +27,7 @@ export default {
     landingDescription:
       "Adivina la celebridad del día con pistas generadas por IA y compite contra tus amigos para ver quién acierta más rápido.",
     landingPlayButton: "¡Comienza a jugar!",
-    poweredBy: "powered by",
+    poweredBy: "build with",
 
     // ====== FOOTER keys (nuevas) ======
     footerCopyright(year) {
@@ -82,7 +82,7 @@ export default {
     landingDescription:
       "Guess the celebrity of the day with AI-generated clues and compete against your friends to see who can guess faster.",
     landingPlayButton: "Start playing!",
-    poweredBy: "powered by",
+    poweredBy: "build with",
     statsTitle: "STATISTICS",
     seeLastGame: "See last game",
     statsFoundLabel: "Found",

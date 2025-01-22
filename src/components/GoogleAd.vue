@@ -17,6 +17,7 @@ export default {
   mounted() {
     // Asegúrate de que el script de Google AdSense esté en tu proyecto.
     if (window.adsbygoogle) {
+      console.log(window.adsbygoogle);
       try {
         (adsbygoogle = window.adsbygoogle || []).push({});
       } catch (e) {
