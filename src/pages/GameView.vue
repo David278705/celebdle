@@ -1,8 +1,6 @@
 <template>
   <!-- Logo superior -->
 
-  <!-- <GoogleAd class="mt-4 w-full" /> -->
-
   <div class="flex justify-center">
     <a href="/">
       <img
@@ -349,8 +347,6 @@
     </div>
   </transition>
 
-  <!-- <GoogleAd class="mt-4 w-full" /> -->
-
   <!-- Statistics Modal -->
   <transition name="fade">
     <div
@@ -436,7 +432,6 @@ import { getCelebrityOfToday } from "@/services/pickCelebrityService";
 import { collection, getDocs } from "firebase/firestore";
 import { db } from "@/firebase/firebase";
 import i18n from "@/lang.js"; // <-- importamos el objeto de traducciones
-import GoogleAd from "../components/GoogleAd.vue";
 
 export default {
   name: "GameView",
@@ -446,9 +441,6 @@ export default {
       type: String,
       default: "es",
     },
-  },
-  components: {
-    GoogleAd,
   },
 
   setup(props) {

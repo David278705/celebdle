@@ -1,4 +1,11 @@
 <template>
+  <!-- <Adsense
+    format="autorelaxed"
+    adStyle="display:block"
+    clientId="ca-pub-8707131788827604"
+    slotId="4470447253"
+  >
+  </Adsense> -->
   <div
     class="dark text-white flex flex-col items-center justify-center cursor-default"
   >
@@ -56,8 +63,6 @@
         />
       </a>
     </p>
-
-    <GoogleAd class="mt-4 w-full" />
   </div>
 </template>
 
@@ -65,7 +70,7 @@
 import { useRouter } from "vue-router";
 import { ref, onMounted, onUnmounted } from "vue";
 import i18n from "@/lang.js"; // Importamos tu archivo de traducciones
-import GoogleAd from "../components/GoogleAd.vue";
+import { Adsense } from "vue3-google-adsense";
 
 export default {
   name: "LandingPage",
@@ -75,8 +80,9 @@ export default {
       default: "es",
     },
   },
+
   components: {
-    GoogleAd,
+    Adsense,
   },
 
   setup(props) {
