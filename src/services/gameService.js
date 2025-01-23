@@ -1,12 +1,5 @@
 // src/services/gameService.js
-import {
-  collection,
-  doc,
-  getDocs,
-  getDoc,
-  setDoc,
-  updateDoc,
-} from "firebase/firestore";
+import { collection, doc, updateDoc } from "firebase/firestore";
 import { db } from "@/firebase/firebase";
 
 // Ejemplo: definimos la colección donde guardaremos estado del juego

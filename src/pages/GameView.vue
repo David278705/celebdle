@@ -430,7 +430,13 @@
 <script>
 import { ref, computed, onMounted, watch } from "vue";
 import { getCelebrityOfToday } from "@/services/pickCelebrityService";
-import { collection, getDocs } from "firebase/firestore";
+import {
+  collection,
+  getDocs,
+  doc,
+  increment,
+  setDoc,
+} from "firebase/firestore";
 import { db } from "@/firebase/firebase";
 import i18n from "@/lang.js"; // <-- importamos el objeto de traducciones
 
@@ -722,6 +728,10 @@ export default {
           String(now.getMonth() + 1).padStart(2, "0") +
           "-" +
           String(now.getDate()).padStart(2, "0");
+
+        const statsRef = doc(db, "generalStats", `playerCount-${todayStr}`); // Cambia `dailyStats` por el ID de tu documento
+        // Incrementar el contador
+        await setDoc(statsRef, { count: increment(1) }, { merge: true });
 
         // 3) Si no había progreso, consultamos la celebridad del día en dailySelection
         const todayCeleb = await getCelebrityOfToday();
