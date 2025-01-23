@@ -25,26 +25,15 @@ jobs:
         run: npm install
 
       # 4. Configurar las variables de entorno (Secrets)
-      - name: Set vite api key
-        run: echo "VITE_API_KEY=${{ secrets.VITE_API_KEY }}" >> $GITHUB_ENV
-
-      - name: Set open ai api key
-        run: echo "VITE_OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}" >> $GITHUB_ENV
-
-      - name: Set firebase auth domain
-        run: echo "VITE_FIREBASE_AUTH_DOMAIN=${{ secrets.VITE_FIREBASE_AUTH_DOMAIN }}" >> $GITHUB_ENV
-
-      - name: Set firebase project id
-        run: echo "VITE_FIREBASE_PROJECT_ID=${{ secrets.VITE_FIREBASE_PROJECT_ID }}" >> $GITHUB_ENV
-
-      - name: Set firebase storage bucket
-        run: echo "VITE_FIREBASE_STORAGE_BUCKET=${{ secrets.VITE_FIREBASE_STORAGE_BUCKET }}" >> $GITHUB_ENV
-
-      - name: Set firebase messaging sender id
-        run: echo "VITE_FIREBASE_MESSAGING_SENDER_ID=${{ secrets.VITE_FIREBASE_MESSAGING_SENDER_ID }}" >> $GITHUB_ENV
-
-      - name: Set firebase app id
-        run: echo "VITE_FIREBASE_APP_ID=${{ secrets.VITE_FIREBASE_APP_ID }}" >> $GITHUB_ENV
+      - name: Set environment variables
+        run: |
+          echo "VITE_API_KEY=${{ secrets.VITE_API_KEY }}" >> $GITHUB_ENV
+          echo "VITE_OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}" >> $GITHUB_ENV
+          echo "VITE_FIREBASE_AUTH_DOMAIN=${{ secrets.VITE_FIREBASE_AUTH_DOMAIN }}" >> $GITHUB_ENV
+          echo "VITE_FIREBASE_PROJECT_ID=${{ secrets.VITE_FIREBASE_PROJECT_ID }}" >> $GITHUB_ENV
+          echo "VITE_FIREBASE_STORAGE_BUCKET=${{ secrets.VITE_FIREBASE_STORAGE_BUCKET }}" >> $GITHUB_ENV
+          echo "VITE_FIREBASE_MESSAGING_SENDER_ID=${{ secrets.VITE_FIREBASE_MESSAGING_SENDER_ID }}" >> $GITHUB_ENV
+          echo "VITE_FIREBASE_APP_ID=${{ secrets.VITE_FIREBASE_APP_ID }}" >> $GITHUB_ENV
 
       # 5. Compilar (build) la aplicación
       - name: Build
@@ -60,15 +49,14 @@ jobs:
           find deployment -name "*.key" -delete
           find deployment -name "*.json" -delete
 
-      # 7. Cargar los artefactos del build filtrados
+      # 7. Subir los artefactos del build (asegurando el nombre correcto)
       - name: Upload production-ready build files
         uses: actions/upload-artifact@v4
         with:
-          name: production-build
+          name: github-pages # Nombre esperado por deploy-pages
           path: ./deployment
           overwrite: true
 
-  # Una vez subidos los archivos, se despliegan a GitHub Pages
   deploy:
     needs: build-and-deploy
     runs-on: ubuntu-latest
