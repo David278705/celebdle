@@ -50,11 +50,23 @@ jobs:
       - name: Build
         run: npm run build
 
-      # 6. Cargar los artefactos del build (la carpeta dist)
+      # 6. Crear una carpeta temporal sin archivos sensibles
+      - name: Prepare deployment folder
+        run: |
+          mkdir deployment
+          cp -R dist/* deployment/
+          # Excluir archivos sensibles
+          find deployment -name "*.env" -delete
+          find deployment -name "*.key" -delete
+          find deployment -name "*.json" -delete
+
+      # 7. Cargar los artefactos del build filtrados
       - name: Upload production-ready build files
-        uses: actions/upload-pages-artifact@v1
+        uses: actions/upload-artifact@v4
         with:
-          path: ./dist
+          name: production-build
+          path: ./deployment
+          overwrite: true
 
   # Una vez subidos los archivos, se despliegan a GitHub Pages
   deploy:
@@ -65,4 +77,4 @@ jobs:
       id-token: write
     steps:
       - name: Deploy to GitHub Pages
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v1
