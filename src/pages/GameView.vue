@@ -10,13 +10,7 @@
       />
     </a>
   </div>
-  <em class="text-xs block text-center text-gray-400 italic mb-4">
-    {{
-      lang === "es"
-        ? "Las pistas se crean utilizando el idioma seleccionado en el momento de su generación."
-        : "Clues are created using the language selected at the time of their generation."
-    }}
-  </em>
+
   <!-- Ícono de pregunta arriba a la derecha -->
   <!-- Íconos arriba a la derecha -->
   <div
@@ -745,8 +739,9 @@ export default {
           audioUrl: todayCeleb.audioUrl,
           // Asumiendo que en dailySelection guardaste un array de clues,
           // o si no, usas un default:
-          clues:
-            props.lang === "es" ? todayCeleb.clues_es : todayCeleb.clues_en,
+          clues_es: todayCeleb.clues_es,
+          clues_en: todayCeleb.clues_en,
+          clues: todayCeleb.clues_es,
           finished: false,
           guessedCorrectly: false,
           revealedCluesCount: 1,
@@ -811,7 +806,11 @@ export default {
      */
     const allClues = computed(() => {
       if (!gameState.value) return [];
-      const textClues = (gameState.value.clues || []).map((c) => ({
+      const textClues = (
+        props.lang === "es"
+          ? gameState.value.clues_es
+          : gameState.value.clues_en || []
+      ).map((c) => ({
         type: "text",
         content: c,
       }));
