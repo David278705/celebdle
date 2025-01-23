@@ -12,11 +12,11 @@ jobs:
     steps:
       # 1. Chequear (checkout) el código
       - name: Check out the repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       # 2. Instalar Node.js (versión 18)
       - name: Use Node.js 18
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: 18
 
@@ -52,9 +52,13 @@ jobs:
 
       # 6. Cargar los artefactos del build (la carpeta dist)
       - name: Upload production-ready build files
-        uses: actions/upload-pages-artifact@v1
+        uses: actions/upload-pages-artifact@v4
         with:
           path: ./dist
+          # Si necesitas incluir archivos ocultos, descomenta la siguiente línea:
+          # include-hidden-files: true
+          # Si necesitas sobreescribir un artefacto existente, descomenta la siguiente línea:
+          # overwrite: true
 
   # Una vez subidos los archivos, se despliegan a GitHub Pages
   deploy:
@@ -65,4 +69,4 @@ jobs:
       id-token: write
     steps:
       - name: Deploy to GitHub Pages
-        uses: actions/deploy-pages@v1
+        uses: actions/deploy-pages@v4
