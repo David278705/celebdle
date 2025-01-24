@@ -1,7 +1,7 @@
 <template>
   <!-- <Adsense
     format="autorelaxed"
-    adStyle="display:block"
+    adStyle="display:block; height: 600px;"
     clientId="ca-pub-8707131788827604"
     slotId="4470447253"
   >

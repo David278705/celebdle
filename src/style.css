@@ -51,6 +51,10 @@ h1 {
   line-height: 1.1;
 }
 
+ins.adsbygoogle[data-ad-status="unfilled"] {
+  display: none !important;
+}
+
 button {
   border-radius: 8px;
   border: 1px solid transparent;
