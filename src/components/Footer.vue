@@ -39,7 +39,7 @@
         </router-link> -->
 
         <select
-          class="text-amber-300 hover:text-amber-400 transition text-sm bg-neutral-800"
+          class="!text-amber-300 hover:text-amber-400 transition text-sm bg-neutral-800"
           @change="changeLanguage($event.target.value)"
           :value="currentLang"
         >
