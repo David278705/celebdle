@@ -125,6 +125,7 @@ export default {
     };
 
     onMounted(() => {
+      window.location.assign("/#/play");
       // Simula si el usuario ha terminado hoy leyendo localStorage
       const storedData = localStorage.getItem("celebGameProgress");
       const now = new Date();
