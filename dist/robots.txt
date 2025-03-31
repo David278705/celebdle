@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+
+# Bloquea carpetas que no necesitas indexar (opcional)
+Disallow: /admin/
+
+# URL del sitemap
+Sitemap: https://celebdle.net/sitemap.xml

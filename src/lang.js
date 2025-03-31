@@ -6,7 +6,7 @@ export default {
     rulesModalTitle: "Reglas del juego",
     rulesList: [
       "🎮 Regla 1: Solo puedes jugar una vez al día.",
-      "🕵️‍♂️ Regla 2: Tienes 6 pistas (4 de texto, 1 de audio, 1 de imagen).",
+      "🕵️‍♂️ Regla 2: Tienes 6 pistas (4 de texto, Información Personal, 1 de imagen).",
       "🏆 Regla 3: Intenta adivinar a la celebridad antes de agotar las pistas.",
     ],
     placeholderGuess: "¿Quién crees que es?",
@@ -44,7 +44,7 @@ export default {
         index + 1 <= 4
           ? "(Texto)"
           : index + 1 == 5
-          ? "(Audio Entrevista)"
+          ? "(Información Personal)"
           : "(Imagen Borrosa)"
       }`;
     },
@@ -70,7 +70,7 @@ export default {
     rulesModalTitle: "Game Rules",
     rulesList: [
       "🎮 Rule 1: You can only play once a day.",
-      "🕵️‍♂️ Rule 2: You have 6 clues (4 text, 1 audio, 1 image).",
+      "🕵️‍♂️ Rule 2: You have 6 clues (4 text, personal data, 1 image).",
       "🏆 Rule 3: Try to guess the celebrity before you run out of clues.",
     ],
     placeholderGuess: "Who do you think it is?",
@@ -106,7 +106,7 @@ export default {
         index + 1 <= 4
           ? "(Text)"
           : index + 1 == 5
-          ? "(Interview Audio)"
+          ? "(Personal Data)"
           : "(Blurred Image)"
       }`;
     },

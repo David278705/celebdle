@@ -122,12 +122,19 @@
             <p class="font-montserrat" v-if="clueObj.type === 'text'">
               {{ clueObj.content }}
             </p>
-            <audio
-              v-else-if="clueObj.type === 'audio'"
-              :src="clueObj.content"
-              controls
-              class="w-full"
-            ></audio>
+            <div v-else-if="clueObj.type === 'personal_data'" class="w-full">
+              <div class="bubble-container">
+                <div class="bubble bubble1">
+                  {{ clueObj.content.country }}
+                </div>
+                <div class="bubble bubble2">
+                  {{ clueObj.content.profession }}
+                </div>
+                <div class="bubble bubble3">
+                  {{ clueObj.content.knownFor }}
+                </div>
+              </div>
+            </div>
             <div
               class="flex justify-center"
               v-else-if="clueObj.type === 'image' && imageUrl"
@@ -736,7 +743,6 @@ export default {
         // 4) Creamos un estado de juego inicial
         gameState.value = {
           celebrityName: todayCeleb.name,
-          audioUrl: todayCeleb.audioUrl,
           // Asumiendo que en dailySelection guardaste un array de clues,
           // o si no, usas un default:
           clues_es: todayCeleb.clues_es,
@@ -746,6 +752,9 @@ export default {
           guessedCorrectly: false,
           revealedCluesCount: 1,
           attempts: 0,
+          knownFor: todayCeleb.knownFor,
+          profession: todayCeleb.profession,
+          country: todayCeleb.country,
 
           savedDate: todayStr,
         };
@@ -801,7 +810,7 @@ export default {
     /**
      * allClues: 6 pistas en orden:
      * [0..3] => textClues (4),
-     * [4] => audio,
+     * [4] => personal_data,
      * [5] => imagen
      */
     const allClues = computed(() => {
@@ -814,15 +823,19 @@ export default {
         type: "text",
         content: c,
       }));
-      const audioClue = {
-        type: "audio",
-        content: gameState.value.audioUrl,
+      const dataClue = {
+        type: "personal_data",
+        content: {
+          country: gameState.value.country,
+          knownFor: gameState.value.knownFor,
+          profession: gameState.value.profession,
+        },
       };
       const imageClue = {
         type: "image",
         content: imageUrl.value,
       };
-      return [...textClues, audioClue, imageClue];
+      return [...textClues, dataClue, imageClue];
     });
 
     // Pistas que se han desbloqueado
@@ -1103,5 +1116,78 @@ export default {
 .fade-enter-active,
 .fade-leave-active {
   transition: opacity 0.3s ease;
+}
+
+.bubble-container {
+  position: relative;
+  width: 100%;
+  height: 300px; /* Ajusta a tu gusto */
+  overflow: hidden; /* Para que no sobresalgan las burbujas */
+  margin-top: 1rem;
+  border: 2px dashed #ccc; /* Para que veas el contenedor */
+}
+
+/* Estilos base de la burbuja */
+.bubble {
+  position: absolute;
+  width: 120px;
+  height: 120px;
+  background-color: #ffe591;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  font-weight: bold;
+  padding: 0.5rem;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+  cursor: default;
+}
+
+/* Cada burbuja inicia en una esquina diferente */
+.bubble1 {
+  top: 0;
+  left: 0;
+  animation: bubbleMove1 4s infinite alternate ease-in-out;
+  color: black;
+}
+.bubble2 {
+  top: 0;
+  right: 0;
+  animation: bubbleMove2 5s infinite alternate ease-in-out;
+  color: black;
+}
+.bubble3 {
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  animation: bubbleMove3 6s infinite alternate ease-in-out;
+  color: black;
+}
+
+/* Animaciones: cada una recorre un “camino” distinto */
+@keyframes bubbleMove1 {
+  0% {
+    transform: translate(0, 0);
+  }
+  100% {
+    transform: translate(80px, 180px) rotate(10deg);
+  }
+}
+@keyframes bubbleMove2 {
+  0% {
+    transform: translate(0, 0);
+  }
+  100% {
+    transform: translate(-80px, 150px) rotate(-10deg);
+  }
+}
+@keyframes bubbleMove3 {
+  0% {
+    transform: translate(-50%, 0);
+  }
+  100% {
+    transform: translate(-50%, -150px) rotate(15deg);
+  }
 }
 </style>

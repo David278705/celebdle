@@ -1,378 +1,261 @@
 <template>
-  <div class="p-4 max-w-4xl mx-auto">
-    <!-- Mostramos quién es la celebridad de HOY (si la hay) -->
-    <div v-if="todayCeleb" class="mb-6 text-center">
-      <h2 class="text-2xl font-bold text-amber-400">
-        Celebridad de hoy: {{ todayCeleb.name }}
-      </h2>
+  <div class="admin-celebrities">
+    <!-- Título principal -->
+    <h1>Administrar Celebridades</h1>
+
+    <!-- Overlay de carga (spinner) -->
+    <div v-if="isLoading" class="loading-overlay">
+      <div class="spinner"></div>
     </div>
 
-    <h1 class="text-2xl font-bold mb-4">Administrar Celebridades</h1>
-
-    <!-- Sección de formulario y búsqueda -->
-    <div class="border border-gray-600 p-4 rounded mb-6">
-      <h2 class="text-xl font-bold mb-2">
-        {{ isEditing ? "Editar Celebridad" : "Añadir Celebridad" }}
-      </h2>
-      <form @submit.prevent="saveCeleb" class="space-y-4">
-        <div>
-          <label class="block font-semibold mb-1">Nombre</label>
-          <input
-            type="text"
-            v-model="name"
-            class="w-full border border-gray-500 rounded p-2"
-            required
-          />
-        </div>
-
-        <div>
-          <label class="block font-semibold mb-1">Audio URL</label>
-          <input
-            type="text"
-            v-model="audioUrl"
-            class="w-full border border-gray-500 rounded p-2"
-            required
-          />
-        </div>
-
-        <div class="flex items-center space-x-2">
-          <button
-            type="submit"
-            class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
-          >
-            {{ isEditing ? "Actualizar" : "Guardar" }}
-          </button>
-          <button
-            type="button"
-            v-if="isEditing"
-            @click="cancelEditing"
-            class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700"
-          >
-            Cancelar
-          </button>
-        </div>
-      </form>
-
-      <!-- Buscador -->
-      <div class="mt-6">
-        <label class="block font-semibold mb-1">Buscar</label>
+    <!-- Formulario para crear la celebridad del día -->
+    <form @submit.prevent="onSubmit" class="form-celebrities">
+      <div class="form-group">
+        <label for="celebrityName">
+          Nombres de la celebridad (máx. 10, separados por coma):
+        </label>
         <input
           type="text"
-          v-model="searchTerm"
-          placeholder="Filtrar por nombre..."
-          class="w-full border border-gray-500 rounded p-2"
+          id="celebrityName"
+          v-model="celebrityName"
+          placeholder="Ej: Shakira, Tom Hanks, Lionel Messi..."
+          required
         />
       </div>
-    </div>
 
-    <!-- Opciones de orden -->
-    <div class="flex items-center space-x-4 mb-2">
-      <span class="font-semibold">Ordenar por:</span>
-      <button
-        class="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 text-sm"
-        @click="sortBy = 'unselectedFirst'"
-      >
-        Sin elegir primero / antigüedad
+      <button type="submit" :disabled="isLoading">
+        Crear Celebridades del Día (IA)
       </button>
-    </div>
+    </form>
 
-    <!-- Tabla de celebridades -->
-    <table class="w-full border border-gray-600 text-sm mb-6">
-      <thead class="bg-gray-700 text-white">
-        <tr>
-          <th class="py-2 px-2 text-left">Nombre</th>
-          <th class="py-2 px-2 text-left">Audio URL</th>
-          <th class="py-2 px-2 text-left">Última Vez Elegida</th>
-          <th class="py-2 px-2 text-center">Acciones</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr
-          v-for="celeb in filteredAndSortedCelebs"
-          :key="celeb.id"
-          class="border-b border-gray-600"
-        >
-          <td class="py-2 px-2">{{ celeb.name }}</td>
-          <td class="py-2 px-2 break-all">{{ celeb.audioUrl }}</td>
-          <td class="py-2 px-2">
-            <span v-if="celeb.lastSelectedDate">
-              {{ celeb.lastSelectedDate }}
-            </span>
-            <span v-else class="text-gray-400">-</span>
-          </td>
-          <td
-            class="py-2 px-2 flex flex-col sm:flex-row items-center sm:justify-center space-y-2 sm:space-y-0 sm:space-x-2"
-          >
-            <button
-              class="bg-blue-600 text-white px-2 py-1 rounded hover:bg-blue-700 text-sm"
-              @click="editCeleb(celeb)"
-            >
-              Editar
-            </button>
-            <button
-              class="bg-red-600 text-white px-2 py-1 rounded hover:bg-red-700 text-sm"
-              @click="deleteCeleb(celeb.id)"
-            >
-              Eliminar
-            </button>
+    <hr />
 
-            <!-- Elegir la fecha y guardarla en dailySelection -->
-            <div class="flex items-center space-x-1">
-              <input
-                type="date"
-                v-model="celeb.chosenDate"
-                class="border rounded text-black text-sm"
-              />
-              <button
-                class="bg-amber-600 text-white px-2 py-1 rounded hover:bg-amber-700 text-sm"
-                @click="chooseAsCelebrityOfDay(celeb)"
-              >
-                Elegir
-              </button>
-            </div>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+    <!-- Listado de dailySelection (fechas programadas) -->
+    <h2>Fechas Programadas</h2>
+    <ul class="scheduled-list">
+      <li v-for="item in scheduledCelebs" :key="item.id">
+        <strong>{{ item.date }}:</strong> {{ item.name }} ({{
+          item.profession
+        }})
+      </li>
+    </ul>
   </div>
 </template>
 
-<script>
-import { ref, onMounted, computed } from "vue";
+<script setup>
+import { ref, onMounted } from "vue";
+import { db } from "@/firebase/firebase";
 import {
   collection,
   getDocs,
-  addDoc,
   doc,
-  updateDoc,
-  deleteDoc,
-  serverTimestamp,
-  query,
+  getDoc,
   where,
+  query,
+  setDoc,
+  addDoc,
 } from "firebase/firestore";
-import { db } from "@/firebase/firebase.js";
+import { generateCelebrityData } from "@/services/openaiService";
 
-// Importar la función de OpenAI
-import { getClues } from "@/services/openaiService.js";
+const celebrityName = ref("");
+const scheduledCelebs = ref([]);
+const isLoading = ref(false);
 
-function fixDropboxUrl(originalUrl) {
-  if (!originalUrl) return "";
-  return originalUrl.replace(
-    "https://www.dropbox.com/",
-    "https://dl.dropboxusercontent.com/"
-  );
+/**
+ * Cargar la lista de dailySelection al montar
+ */
+onMounted(() => {
+  fetchScheduledCelebs();
+});
+
+/**
+ * Maneja el formulario:
+ * - Permite hasta 10 nombres, separados por comas.
+ * - Para cada nombre, genera la data con la IA, busca la fecha libre y
+ *   crea un doc en dailySelection.
+ * - Además, crea un doc en "celebrities" con el "name" nada más.
+ */
+async function onSubmit() {
+  if (!celebrityName.value.trim()) {
+    alert("Debe ingresar al menos un nombre de celebridad.");
+    return;
+  }
+
+  try {
+    isLoading.value = true;
+
+    // 1) Dividir el input por comas, limpiar espacios, tomar hasta 10
+    const names = celebrityName.value
+      .split(",")
+      .map((n) => n.trim())
+      .filter((n) => n.length > 0)
+      .slice(0, 10);
+
+    if (!names.length) {
+      alert("No se detectaron nombres válidos.");
+      return;
+    }
+
+    let createdCount = 0;
+
+    for (const name of names) {
+      // a) Crear doc en "celebrities" con solo { name }
+
+      const celebCol = collection(db, "celebrities");
+
+      const q = query(celebCol, where("name", "==", name));
+      const snapshot = await getDocs(q);
+      if (!snapshot.empty) {
+        // Si entra aquí, ya existe un documento con ese name
+        console.warn(`La celebridad "${name}" ya existe. Se omite.`);
+        continue; // saltamos esta celebridad
+      }
+
+      await addDoc(celebCol, { name });
+
+      // b) Pedir datos a la IA (profesión, país, etc.)
+      const data = await generateCelebrityData(name);
+
+      // c) Calcular la fecha libre
+      const freeDateStr = await getNextAvailableDate();
+
+      // d) Crear doc en dailySelection para esa fecha
+      const docRef = doc(db, "dailySelection", freeDateStr);
+      await setDoc(docRef, {
+        date: freeDateStr,
+        name,
+        profession: data.profession || "",
+        country: data.country || "",
+        knownFor: data.knownFor || "",
+        clues_es: data.clues_es || [],
+        clues_en: data.clues_en || [],
+      });
+
+      createdCount++;
+    }
+
+    alert(`Se crearon ${createdCount} celebridades del día correctamente.`);
+    celebrityName.value = "";
+    await fetchScheduledCelebs();
+  } catch (error) {
+    console.error("Error al crear celebridades:", error);
+    alert("Ocurrió un error. Revisa la consola.");
+  } finally {
+    isLoading.value = false;
+  }
 }
 
-export default {
-  name: "AdminCelebrities",
-  setup() {
-    const celebrities = ref([]);
-    const name = ref("");
-    const audioUrl = ref("");
-    const isEditing = ref(false);
-    let celebIdToEdit = null;
+/**
+ * Lee dailySelection para mostrar las fechas programadas
+ */
+async function fetchScheduledCelebs() {
+  try {
+    const dailyColl = collection(db, "dailySelection");
+    const snapshot = await getDocs(dailyColl);
+    scheduledCelebs.value = snapshot.docs.map((docSnap) => ({
+      id: docSnap.id,
+      ...docSnap.data(),
+    }));
+  } catch (error) {
+    console.error("Error obteniendo dailySelection:", error);
+  }
+}
 
-    // Para búsqueda y orden
-    const searchTerm = ref("");
-    const sortBy = ref("unselectedFirst");
-
-    // Mostramos celebridad de HOY, si existe
-    const todayCeleb = ref(null);
-
-    onMounted(async () => {
-      await loadCelebs();
-      await loadTodayCeleb();
-    });
-
-    async function loadCelebs() {
-      celebrities.value = [];
-      const snapshot = await getDocs(collection(db, "celebrities"));
-      snapshot.forEach((docSnap) => {
-        const data = docSnap.data();
-        celebrities.value.push({
-          id: docSnap.id,
-          ...data,
-          lastSelectedDate: data.lastSelectedDate || null,
-          chosenDate: "",
-        });
-      });
+/**
+ * Retorna la primera fecha libre a partir de hoy.
+ */
+async function getNextAvailableDate() {
+  let currentDate = new Date();
+  while (true) {
+    const dateStr = formatDate(currentDate);
+    const docRef = doc(db, "dailySelection", dateStr);
+    const docSnap = await getDoc(docRef);
+    if (!docSnap.exists()) {
+      return dateStr;
     }
+    currentDate.setDate(currentDate.getDate() + 1);
+  }
+}
 
-    async function loadTodayCeleb() {
-      const todayStr = getTodayString();
-      const dailyColl = collection(db, "dailySelection");
-      const q = query(dailyColl, where("date", "==", todayStr));
-      const snap = await getDocs(q);
-      if (!snap.empty) {
-        snap.forEach((docSnap) => {
-          todayCeleb.value = docSnap.data();
-        });
-      } else {
-        todayCeleb.value = null;
-      }
-    }
-
-    function getTodayString() {
-      const d = new Date();
-      d.setHours(0, 0, 0, 0);
-      const y = d.getFullYear();
-      const m = String(d.getMonth() + 1).padStart(2, "0");
-      const day = String(d.getDate()).padStart(2, "0");
-      return `${y}-${m}-${day}`;
-    }
-
-    const filteredAndSortedCelebs = computed(() => {
-      let results = celebrities.value.filter((celeb) =>
-        celeb.name.toLowerCase().includes(searchTerm.value.toLowerCase())
-      );
-
-      if (sortBy.value === "unselectedFirst") {
-        results.sort((a, b) => {
-          if (!a.lastSelectedDate && !b.lastSelectedDate) return 0;
-          if (!a.lastSelectedDate) return -1;
-          if (!b.lastSelectedDate) return 1;
-          return new Date(a.lastSelectedDate) - new Date(b.lastSelectedDate);
-        });
-      }
-      return results;
-    });
-
-    /**
-     * saveCeleb:
-     * - Genera 4 pistas con getClues(name, 'es' / 'en')
-     * - Guarda en Firestore { name, audioUrl, clues, ... }
-     */
-    async function saveCeleb() {
-      if (!name.value.trim() || !audioUrl.value.trim()) return;
-
-      const fixedUrl = fixDropboxUrl(audioUrl.value);
-
-      if (!isEditing.value) {
-        // Crear nuevo
-        await addDoc(collection(db, "celebrities"), {
-          name: name.value,
-          audioUrl: fixedUrl,
-          lastSelectedAt: null,
-        });
-      } else {
-        // Editar existente
-        if (!celebIdToEdit) return;
-        const docRef = doc(db, "celebrities", celebIdToEdit);
-        await updateDoc(docRef, {
-          name: name.value,
-          audioUrl: fixedUrl,
-        });
-      }
-
-      // Limpiamos
-      name.value = "";
-      audioUrl.value = "";
-      celebIdToEdit = null;
-      isEditing.value = false;
-
-      await loadCelebs();
-    }
-
-    function editCeleb(celeb) {
-      isEditing.value = true;
-      celebIdToEdit = celeb.id;
-      name.value = celeb.name;
-      audioUrl.value = celeb.audioUrl;
-    }
-
-    function cancelEditing() {
-      isEditing.value = false;
-      celebIdToEdit = null;
-      name.value = "";
-      audioUrl.value = "";
-    }
-
-    async function deleteCeleb(id) {
-      if (!confirm("¿Estás seguro de eliminar esta celebridad?")) return;
-      await deleteDoc(doc(db, "celebrities", id));
-      await loadCelebs();
-    }
-
-    async function chooseAsCelebrityOfDay(celeb) {
-      if (!celeb.chosenDate) {
-        alert("Selecciona una fecha antes de elegir.");
-        return;
-      }
-      // Validar que no sea antes de HOY
-      const chosen = new Date(celeb.chosenDate + "T00:00:00");
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-
-      if (chosen < today) {
-        alert("No puedes elegir la fecha pasada.");
-        return;
-      }
-
-      // Validar que no exista dailySelection con esa fecha
-      const dailyRef = collection(db, "dailySelection");
-      const q = query(dailyRef, where("date", "==", celeb.chosenDate));
-      const snap = await getDocs(q);
-      if (!snap.empty) {
-        alert("Ya existe una celebridad elegida para esa fecha.");
-        return;
-      }
-
-      // 1) Llamar a OpenAI para generar 4 pistas en español y 4 en inglés
-      const clues_es = await getClues(celeb.name, "es");
-      const clues_en = await getClues(celeb.name, "en");
-
-      // 2) Guardar en dailySelection, incluyendo audioUrl y las 2 versiones de pistas
-      await addDoc(dailyRef, {
-        celebId: celeb.id,
-        name: celeb.name,
-        audioUrl: celeb.audioUrl,
-        clues_es, // Pistas en español
-        clues_en, // Pistas en inglés
-        date: celeb.chosenDate, // "YYYY-MM-DD"
-        createdAt: serverTimestamp(),
-      });
-
-      // 3) Actualizar lastSelectedDate en la coleccion celebrities
-      const docRef = doc(db, "celebrities", celeb.id);
-      await updateDoc(docRef, {
-        lastSelectedDate: celeb.chosenDate,
-      });
-
-      alert(`Celebridad "${celeb.name}" elegida para el ${celeb.chosenDate}`);
-      await loadCelebs();
-    }
-
-    return {
-      celebrities,
-      name,
-      audioUrl,
-      isEditing,
-      searchTerm,
-      sortBy,
-      todayCeleb,
-
-      filteredAndSortedCelebs,
-      loadCelebs,
-      saveCeleb,
-      editCeleb,
-      cancelEditing,
-      deleteCeleb,
-      chooseAsCelebrityOfDay,
-    };
-  },
-};
+function formatDate(date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
 </script>
 
 <style scoped>
-/* Ajusta estilos a tu gusto */
-
-/* Transiciones para <transition name="fade"> */
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
+.admin-celebrities {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 1rem;
 }
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.3s ease;
+
+.admin-celebrities h1 {
+  text-align: center;
+  margin-bottom: 1rem;
+}
+
+/* Formulario */
+.form-celebrities {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-group label {
+  font-weight: bold;
+  margin-bottom: 0.5rem;
+}
+
+.form-group input {
+  padding: 0.5rem;
+  font-size: 1rem;
+}
+
+/* Listado */
+.scheduled-list {
+  margin-top: 1rem;
+  list-style: none;
+  padding: 0;
+}
+.scheduled-list li {
+  margin-bottom: 0.5rem;
+}
+
+/* Overlay de carga */
+.loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+}
+
+/* Spinner */
+.spinner {
+  width: 50px;
+  height: 50px;
+  border: 6px solid #cccccc;
+  border-top-color: #3c85f7;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 </style>
