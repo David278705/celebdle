@@ -77,6 +77,37 @@
         {{ t("gameTitle") }}
       </h2>
 
+      <!-- Reglas visibles directamente -->
+      <div class="bg-neutral-700 text-white rounded p-3 mb-4">
+        <h3 class="font-montserrat text-lg font-semibold mb-2 text-amber-300">
+          📜 Cómo jugar
+        </h3>
+        <ul class="list-disc pl-5 space-y-1 text-sm font-montserrat">
+          <li>Adivina la celebridad en el menor número de pistas posible.</li>
+          <li>Cada pista revela más información visual o textual.</li>
+          <li>¡Tienes una oportunidad por día!</li>
+        </ul>
+      </div>
+
+      <!-- Dato curioso del día -->
+      <div class="bg-neutral-700 text-white rounded p-3 mb-4">
+        <h3 class="font-montserrat text-lg font-semibold mb-2 text-amber-300">
+          🎬 Dato curioso del día
+        </h3>
+        <p class="text-sm font-montserrat italic">
+          {{ dailyFunFact }}
+        </p>
+      </div>
+
+      <div class="bg-neutral-700 text-white rounded p-3 mb-4">
+        <h3 class="font-montserrat text-lg font-semibold mb-2 text-amber-300">
+          💡 Consejo del día
+        </h3>
+        <p class="text-sm font-montserrat">
+          {{ dailyTip }}
+        </p>
+      </div>
+
       <!-- Cargando estado de juego -->
       <div class="flex justify-center flex-1" v-if="!gameState">
         <span class="relative flex h-5 w-5">
@@ -187,6 +218,9 @@
               class="font-montserrat text-black p-2 rounded w-full"
               :placeholder="t('placeholderGuess')"
               @keyup.enter="onGuess"
+              @keydown.down.prevent="handleArrowDown"
+              @keydown.up.prevent="handleArrowUp"
+              @keydown.enter.prevent="handleEnterKey"
             />
             <!-- Sugerencias -->
             <ul
@@ -196,7 +230,11 @@
               <li
                 v-for="(sugg, idx) in suggestions"
                 :key="idx"
-                class="px-2 py-1 hover:bg-neutral-600 cursor-pointer"
+                class="px-2 py-1 cursor-pointer"
+                :class="{
+                  'bg-neutral-600': idx === selectedSuggestionIndex,
+                  'hover:bg-neutral-600': true,
+                }"
                 @click="selectSuggestion(sugg)"
               >
                 {{ sugg }}
@@ -246,6 +284,9 @@
               class="font-montserrat text-black p-2 rounded w-full"
               :placeholder="t('placeholderGuess')"
               @keyup.enter="onGuess"
+              @keydown.down.prevent="handleArrowDown"
+              @keydown.up.prevent="handleArrowUp"
+              @keydown.enter.prevent="handleEnterKey"
             />
             <!-- Sugerencias -->
             <ul
@@ -255,7 +296,11 @@
               <li
                 v-for="(sugg, idx) in suggestions"
                 :key="idx"
-                class="px-2 py-1 hover:bg-neutral-600 cursor-pointer"
+                class="px-2 py-1 cursor-pointer"
+                :class="{
+                  'bg-neutral-600': idx === selectedSuggestionIndex,
+                  'hover:bg-neutral-600': true,
+                }"
                 @click="selectSuggestion(sugg)"
               >
                 {{ sugg }}
@@ -304,6 +349,18 @@
         <div v-if="localFinished" class="mt-4 text-center">
           <p class="font-montserrat text-green-300">
             {{ t("nextCelebrityTimer", timer) }}
+          </p>
+        </div>
+
+        <div
+          v-if="localFinished"
+          class="bg-neutral-700 text-white rounded-lg mt-4 p-4"
+        >
+          <h3 class="text-amber-300 font-montserrat font-semibold mb-2 text-lg">
+            🤔 ¿Sabías que...?
+          </h3>
+          <p class="text-sm font-montserrat italic">
+            {{ endGameFact }}
           </p>
         </div>
       </div>
@@ -430,6 +487,7 @@
 
 <script>
 import { ref, computed, onMounted, watch } from "vue";
+import { useHead } from "@vueuse/head";
 import { getCelebrityOfToday } from "@/services/pickCelebrityService";
 import {
   collection,
@@ -452,6 +510,22 @@ export default {
   },
 
   setup(props) {
+    useHead({
+      title: "Celebdle - Celebrity Guessing Game",
+      meta: [
+        {
+          name: "description",
+          content:
+            "Celebdle is a daily game to guess celebrities using AI clues.",
+        },
+        {
+          name: "keywords",
+          content:
+            "celebdle, celebrity guessing game, AI clues, juego diario de celebridades, adivina famosos, celebs",
+        },
+      ],
+    });
+
     const imageUrl = ref("");
 
     const showRulesModal = ref(false);
@@ -468,6 +542,7 @@ export default {
     const attempts = ref(0);
     const cluesColors = ref([]);
     const isGuessing = ref(false);
+    const selectedSuggestionIndex = ref(-1);
 
     const timer = ref("00:00:00");
     // Stats en localStorage
@@ -478,6 +553,53 @@ export default {
       currentStreak: 0,
       maxStreak: 0,
       lastPlayed: null,
+    });
+
+    const tips = [
+      "Observa bien los detalles en las imágenes: los accesorios pueden dar pistas.",
+      "Si la pista es un país, piensa en celebridades originarias de ese lugar.",
+      "¿La profesión es 'cantante'? Recuerda que muchos también actúan.",
+      "Aprovecha todas las pistas antes de adivinar.",
+      "Si no estás seguro, intenta con sinónimos del nombre o apodos.",
+    ];
+
+    const dailyTip = ref("");
+
+    onMounted(() => {
+      const index = new Date().getDay() % tips.length;
+      dailyTip.value = tips[index];
+    });
+
+    const endGameFacts = [
+      "Muchos actores famosos comenzaron como extras o dobles.",
+      "Algunos personajes icónicos fueron interpretados por múltiples actores a lo largo de los años.",
+      "Muchos actores de voz famosos también interpretan personajes en películas en vivo.",
+      "Algunas celebridades usan seudónimos completamente diferentes a sus nombres reales.",
+      "El primer Oscar se entregó en 1929, y duró solo 15 minutos.",
+    ];
+
+    const endGameFact = ref("");
+
+    watch(localFinished, (val) => {
+      if (val) {
+        const idx = Math.floor(Math.random() * endGameFacts.length);
+        endGameFact.value = endGameFacts[idx];
+      }
+    });
+
+    const funFacts = [
+      "¿Sabías que Keanu Reeves ha donado la mayor parte de sus ingresos de Matrix a la investigación del cáncer?",
+      "Morgan Freeman no obtuvo su primer papel importante hasta los 52 años.",
+      "Emma Watson es licenciada en literatura inglesa por la Universidad de Brown.",
+      "Nicolas Cage una vez compró un pulpo como mascota para estudiar actuación.",
+      "El actor que interpreta a Chewbacca mide 2.21 metros.",
+    ];
+
+    const dailyFunFact = ref("");
+
+    onMounted(() => {
+      const index = new Date().getDate() % funFacts.length;
+      dailyFunFact.value = funFacts[index];
     });
 
     let intervalId = null; // Referencia al intervalo para limpiar al desmontar
@@ -854,6 +976,32 @@ export default {
       }
     }
 
+    function handleArrowDown() {
+      if (!suggestions.value.length) return;
+      selectedSuggestionIndex.value =
+        (selectedSuggestionIndex.value + 1) % suggestions.value.length;
+    }
+
+    function handleArrowUp() {
+      if (!suggestions.value.length) return;
+      selectedSuggestionIndex.value =
+        (selectedSuggestionIndex.value - 1 + suggestions.value.length) %
+        suggestions.value.length;
+    }
+
+    function handleEnterKey() {
+      if (selectedSuggestionIndex.value >= 0) {
+        selectSuggestion(suggestions.value[selectedSuggestionIndex.value]);
+        selectedSuggestionIndex.value = -1;
+      } else {
+        onGuess();
+      }
+    }
+
+    watch(suggestions, () => {
+      selectedSuggestionIndex.value = -1;
+    });
+
     function saveStats() {
       localStorage.setItem("celebStats", JSON.stringify(stats.value));
     }
@@ -1029,6 +1177,13 @@ export default {
       localFinished,
       attempts,
       cluesColors,
+      dailyFunFact,
+      endGameFact,
+      dailyTip,
+      handleArrowDown,
+      handleArrowUp,
+      handleEnterKey,
+      selectedSuggestionIndex,
 
       // Computed
       allClues,
