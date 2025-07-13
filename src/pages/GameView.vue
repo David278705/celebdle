@@ -235,7 +235,7 @@
                   'bg-neutral-600': idx === selectedSuggestionIndex,
                   'hover:bg-neutral-600': true,
                 }"
-                @click="selectSuggestion(sugg)"
+                @click="selectSuggestion(sugg, idx)"
               >
                 {{ sugg }}
               </li>
@@ -301,7 +301,7 @@
                   'bg-neutral-600': idx === selectedSuggestionIndex,
                   'hover:bg-neutral-600': true,
                 }"
-                @click="selectSuggestion(sugg)"
+                @click="selectSuggestion(sugg, idx)"
               >
                 {{ sugg }}
               </li>
@@ -638,8 +638,9 @@ export default {
     }
 
     // Al seleccionar una sugerencia:
-    function selectSuggestion(name) {
+    function selectSuggestion(name, index) {
       userGuess.value = name;
+      selectedSuggestionIndex.value = index;
       setTimeout(() => {
         suggestions.value = [];
       }, 400);
@@ -990,17 +991,15 @@ export default {
     }
 
     function handleEnterKey() {
-      if (selectedSuggestionIndex.value >= 0) {
-        selectSuggestion(suggestions.value[selectedSuggestionIndex.value]);
-        selectedSuggestionIndex.value = -1;
-      } else {
-        onGuess();
+      if (selectedSuggestionIndex.value !== -1) {
+        const selected = suggestions.value[selectedSuggestionIndex.value];
+        userGuess.value = selected;
+
+        setTimeout(() => {
+          suggestions.value = [];
+        }, 400);
       }
     }
-
-    watch(suggestions, () => {
-      selectedSuggestionIndex.value = -1;
-    });
 
     function saveStats() {
       localStorage.setItem("celebStats", JSON.stringify(stats.value));
@@ -1054,6 +1053,7 @@ export default {
     // Adivinar
     // onGuess => sin Firestore, solo local
     async function onGuess() {
+      if (selectedSuggestionIndex.value === -1) return;
       if (!gameState.value || localFinished.value) return;
       if (!userGuess.value.trim()) return;
 
@@ -1096,6 +1096,7 @@ export default {
       }
       saveToLocalStorage();
       userGuess.value = "";
+      selectedSuggestionIndex.value = -1;
     }
 
     // onSkip => incrementa revealedCluesCount y guarda local
